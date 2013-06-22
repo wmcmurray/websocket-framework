@@ -17,7 +17,6 @@ Features
 Included demos
 -------------------------
 * A simple **Chat server**
-* MMouse (display other user's mouses moving when visiting a website !)
 
 How to create a server
 -------------------------
