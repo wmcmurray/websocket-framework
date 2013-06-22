@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Websocket Chat</title>
+    <link href="all.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+	<div id="header">
+    	<div id="header_inner">
+            <h1>Websocket Chat</h1>
+        </div>
+    </div>
+	<div id="content">
+        <h2>Server commands</h2>        
+        <table>
+        	<tr>
+                <th align="left">De base</th>
+                <td>
+                    <input type="button" value="init_socket()" onClick="chat.init_socket();">
+                    <input type="button" value="close()" onClick="chat.socket.close();">
+                    <input type="button" value="ping()" onClick="chat.socket.ping();">
+                </td>
+            </tr>
+            <tr>
+                <th align="left">Chat</th>
+                <td>
+                    <input type="button" value="Refresh clients list" onClick="chat.socket.send('list_clients');">
+                    <input type="button" value="Refresh messages list" onClick="chat.socket.send('list_messages');">
+                </td>
+            </tr>
+            <tr>
+                <th align="left">Admin</th>
+                <td>
+                    <input type="button" value="login()" onClick="chat.socket.sys_send('login', prompt('Le mot de passe de l\'admin'));">
+                    <input type="button" value="logout()" onClick="chat.socket.sys_send('logout');">
+                    <input type="button" value="reboot()" onClick="if(confirm('Do you really want to REBOOT the server ?')){chat.socket.sys_send('reboot');}">
+                    <input type="button" value="shutdown()" onClick="if(confirm('Do you really want to SHUTDOWN the server ?')){chat.socket.sys_send('shutdown');}">
+                    <input type="button" value="clients_count()" onClick="chat.socket.sys_send('clients_count');">
+                    <input type="button" value="clients_list()" onClick="chat.socket.sys_send('clients_list');">
+                    <input type="button" value="kick(id)" onClick="chat.socket.sys_send('kick',prompt('l\'id du client (exemple: 51c4ec7d1bc6f)'));">
+                </td>
+            </tr>
+        </table>
+
+        <h2>Demo</h2>
+        <div>
+            <!-- Ton username -->
+            Username : <input id="username_field" type="text" size="30" onchange="chat.change_username(this.value);"><br>
+
+            <!-- Ici s'affichera la liste des clients connectés sur le serveur -->
+            Clients connectés : <i><span id="clients_list"></span></i>
+
+            <!-- Ici s'affichera les messages reçus -->
+            <div id="messages"></div>
+
+            <!-- Champ pour écrire les messages à envoyer -->
+            <input id="message_field" type="text" size="100"><br>
+
+            <!-- Bouton pour envoyé un message -->
+            <div style="text-align: right;">
+                <input id="message_button" type="button" value="envoyer">
+            </div>
+        </div>
+
+        <h2>Notes</h2>
+        <p>(Regarde dans la console javascript du browser pour voir les logs)</p>
+
+	</div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="js/SocketClient.js"></script>
+    <script src="js/Chat.js"></script>
+    <script src="js/Chat_user.js"></script>
+    <script>
+
+        // initialise le chat
+        var chat;
+        window.onload=function()
+        {
+            chat = new Chat("127.0.0.1","8080");
+            jQuery("#message_button").click(function(){
+                send_message();
+            });
+
+            jQuery("#message_field").keydown(function(e){
+                if(e.keyCode == 13)
+                {
+                    send_message();
+                }
+            });
+
+            jQuery("#username_field").val(chat.me.prefs.username);
+        }
+
+        function send_message()
+        {
+            var message_field = jQuery("#message_field");
+            var message = message_field.val();
+
+            if(message != "")
+            {
+                chat.send_message(message_field.val());
+                message_field.val('');
+            }
+        }
+
+    </script>
+</body>
+</html>

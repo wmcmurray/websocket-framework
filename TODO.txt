@@ -1,0 +1,10 @@
+TODO
+====================
+----- Core server -----
+- Ajouter une propriété dans clients qui permet de définir si un reçoit des datas ou pas (penser à gèrer ça par actions, c'est à dire qu'il soit possible de recevoir tel event mais pas tel autre)
+
+
+----- MMouse -----
+- Écouter les évènements de focus et blur sur la window pour faire dekoi si un user quitte la page :P (display qu'il n'est pas là et set dans database que yé pas là fak send pas les datas à lui)
+- Tenter de gèrer la détection du real_fps dans les users dans le core... faire que calcul du délais d'un client entre chaque data recu, + reviens au fps par défaut si délais dépasse 1 seconde genre...
+- ptêtre sender des infos sur le browser au serveur genre la taille de l'écran du user, etc
