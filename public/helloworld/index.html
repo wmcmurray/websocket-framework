@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World - Websocket Framework</title>
+
+    <!-- CSS stylesheets -->
+    <link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="../lib/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css">
+    <link href="all.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+    <!-- Navigation bar -->
+    <div class="navbar navbar-static-top">
+        <div class="navbar-inner">
+            <div class="container">
+
+                <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <a class="brand" href="#">Websocket Framework demos</a>
+
+                <div class="nav-collapse collapse">
+                    <p class="navbar-text pull-right" id="console"></p>
+                    <ul class="nav">
+                        <li class="active"><a href="../helloworld/index.html">Hello World</a></li>
+                        <li><a href="../admin/index.html">AdminCP</a></li>
+                        <li><a href="../chat/index.html">Simple Chat</a></li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container" id="demo">
+        <div class="row-fluid">
+
+            <!-- Left column -->
+            <div class="span3">
+                <div class="well sidebar-nav">
+                    <ul class="nav nav-list">
+                        <li class="nav-header">HelloWorld actions</li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.send('helloworld', prompt('Write something :', 'Hello World !'));">Send data to server</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+
+            <!-- Right column -->
+            <div class="span9">
+                <div id="helloworld-console"></div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <!-- JavaScript files -->
+    <script src="../lib/jquery-2.0.2.min.js"></script>
+    <script src="../lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../lib/SocketClient.js"></script>
+    <script src="js/HelloWorld.js"></script>
+    <script>
+
+        // Client Initialization
+        var client;
+        jQuery(document).ready(function()
+        {
+            client = new HelloWorld("127.0.0.1", "8080");
+        });
+
+    </script>
+</body>
+</html>

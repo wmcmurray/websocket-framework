@@ -1,0 +1,23 @@
+#demo
+{
+	margin-top: 20px;
+}
+
+#helloworld-console
+{
+	border-radius: 5px;
+	width: 95%;
+	height: 400px;
+	padding: 10px 10px 20px 10px;
+	background-color: #333;
+	color: #9f3;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	font-size: 12px;
+	font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
+}
+
+#helloworld-console .entry
+{
+	white-space: pre-line;
+}

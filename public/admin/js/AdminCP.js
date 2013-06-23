@@ -41,7 +41,7 @@ function AdminCP(address, port)
 		this.socket.on("ping", function(ms){ self.display_log("Your ping is "+ ms +" milliseconds"); });
 
 		// opening of the socket
-		self.socket.sys_alert("Trying to open the socket...");
+		self.display_log("Trying to open the socket...");
 		this.socket.open();
 	}
 

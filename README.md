@@ -16,10 +16,11 @@ Features
 * **A groups system** enabling internal communications between group clients (like a chatrooms in a chat)
 * **Connected clients limit** to prevent your servers from exploding
 
-Included demos
+Demos included
 -------------------------
-* A simple **Chat server**
-* A server admin **Control Panel**
+* An "HelloWorld" server
+* A simple **chat server**
+* An **admin control panel**
 
 How to create a server
 -------------------------
@@ -81,7 +82,7 @@ handle_(ACTION_NAME_HERE)($client, $data);
 		}
 	}
 
-	$server = new HelloWorld_SocketServer("127.0.0.1",8080);
+	$server = new HelloWorld_SocketServer("127.0.0.1", 8080);
 	$server->run();
 	?>
 
@@ -142,10 +143,12 @@ TODOs list
 - [x] Clean this README.md file
 - [x] Clean demos code and integrate twitter bootstrap
 - [x] Create an Admin Control Panel demo
+- [x] Create an Hello World demo
+- [ ] Create a simple game demo
 - [ ] Add more details about APIs methods in README.md file
 - [/] Clean the core PHP code
 - [ ] Add possibility to set different output modes in each server instances instead of common config file
-- [ ] Add an admin command to buffer server output and retrieve it via client to remotely see PHP errors and such
+- [ ] Add an admin command to buffer server output and retrieve it via client to remotely see PHP errors
 - [ ] Find a way to redefine the server class when server is rebooted remotely by an admin
 - [ ] Add a way to ban a client definitively with the Admin API
 
