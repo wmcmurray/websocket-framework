@@ -57,13 +57,15 @@
                             <a href="javascript:void(0);" onclick="client.socket.ping();">Send ping request</a>
                         </li>
 
-                        <li class="nav-header">Admin actions</li>
+                        <li class="nav-header">Admin access</li>
                         <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('login', prompt('Enter admin password :', 'admin'));">Login</a>
                         </li>
                         <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('logout');">Logout</a>
                         </li>
+
+                        <li class="nav-header">Admin clients management</li>
                         <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('clients_count');">Get clients count</a>
                         </li>
@@ -73,6 +75,8 @@
                         <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('kick',prompt('Enter client ID (exemple: 51c4ec7d1bc6f)'));">Kick a client</a>
                         </li>
+
+                        <li class="nav-header">Admin server management</li>
                         <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('sleep',prompt('How much time ? (in seconds)'));">Sleep server</a>
                         </li>

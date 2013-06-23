@@ -465,9 +465,12 @@ class SocketServer
 				break;
 				case "sleep":
 					$time = intval($json->content);
-					output("Zzzzzz for " . $time . " seconds...");
-					sleep($time);
-					output("Zzzzzz is over !");
+					if($time > 0)
+					{
+						output("Zzzzzz for " . $time . " seconds...");
+						sleep($time);
+						output("Zzzzzz is over !");
+					}
 				break;
 				case "clients_count":
 					$this->sys_send($client, "alert", $this->get_clients_count() . " clients connected.");

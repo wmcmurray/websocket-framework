@@ -13,6 +13,12 @@ function AdminCP(address, port)
 	
 	this.init_socket = function()
 	{
+		// close current socket in already opened
+		if(this.socket)
+		{
+			this.socket.close();
+		}
+
 		// instanciate the SocketClient class
 		this.socket = new SocketClient(address, port);
 
