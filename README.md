@@ -22,6 +22,10 @@ Demos included
 * A simple **chat server**
 * An **admin control panel**
 
+
+Instructions
+======================================
+
 How to create a server
 -------------------------
 1. Create a new class extending SocketServer and place it in "/my_servers"
@@ -85,57 +89,291 @@ handle_(ACTION_NAME_HERE)($client, $data);
 	$server = new HelloWorld_SocketServer("127.0.0.1", 8080);
 	$server->run();
 	?>
+	
+How to setup a JavaScript client
+-------------------------
+Until this doc is completed, please look at the demos !
+
 
 
 API Reference
 ======================================
 
-Server events
--------------------------
+## Back-end
+
+### Server events
 You can declare theses methods in your extended class, theses will be executed when the event is fired on the server.
 
-* on_client_connect();
-* on_client_handshake();
-* on_client_disconnect();
-* on_client_kick();
-* on_server_shutdown();
-* on_server_reboot();
+<table>
+	<tr>
+		<th>Method</th>
+		<th>Parameters</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td><strong>on_client_connect()</strong></td>
+		<td>
+			<ul>
+				<li>client&nbsp;-&nbsp;SocketClient()</li>
+			</ul>
+		</td>
+		<td>Executed when a client is trying to connect to the server (before handshake is done).</td>
+	</tr>
+	<tr>
+		<td><strong>on_client_handshake()</strong></td>
+		<td>
+			<ul>
+				<li>client&nbsp;-&nbsp;SocketClient()</li>
+				<li>headers&nbsp;-&nbsp;array()</li>
+				<li>vars&nbsp;-&nbsp;array()</li>
+			</ul>
+		</td>
+		<td>Executed when a client is sucessfully handshaked. You got access to an array containing headers sent along with the client request and an array containing variables passed in URL.</td>
+	</tr>
+	<tr>
+		<td><strong>on_client_disconnect()</strong></td>
+		<td>
+			<ul>
+				<li>client&nbsp;-&nbsp;SocketClient()</li>
+			</ul>
+		</td>
+		<td>Executed when a client socket is closed.</td>
+	</tr>
+	<tr>
+		<td><strong>on_client_kick()</strong></td>
+		<td>
+			<ul>
+				<li>client&nbsp;-&nbsp;SocketClient()</li>
+			</ul>
+		</td>
+		<td>Executed when a client is kicked from the server.</td>
+	</tr>
+	<tr>
+		<td><strong>on_server_shutdown()</strong></td>
+		<td></td>
+		<td>Executed when the server is shuting down.</td>
+	</tr>
+	<tr>
+		<td><strong>on_server_reboot()</strong></td>
+		<td></td>
+		<td>Executed just before the server reboots.</td>
+	</tr>
+</table>
 
 
-Server methods
--------------------------
 
+### Server methods
+
+
+
+#### Global settings
 Use theses to set some global variables that affect behavior of server. (call them preferably in the init() method.)
 
-* set_admin_password();
-* set_server_name();
-* set_max_clients();
+<table>
+	<tr>
+		<th>Method</th>
+		<th>Parameters</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td><strong>set_admin_password()</strong></td>
+		<td>
+			<ul>
+				<li>newPassword&nbsp;-&nbsp;string</li>
+			</ul>
+		</td>
+		<td>Used to set the password that will be required to be granted by admin priviledges via a JavaScript client.</td>
+	</tr>
+	<tr>
+		<td><strong>set_server_name()</strong></td>
+		<td>
+			<ul>
+				<li>serverName&nbsp;-&nbsp;string</li>
+			</ul>
+		</td>
+		<td>Set the name of the server. Used almost only for display in command prompt.</td>
+	</tr>
+	<tr>
+		<td><strong>set_max_clients()</strong></td>
+		<td>
+			<ul>
+				<li>maxClient&nbsp;-&nbsp;int</li>
+			</ul>
+		</td>
+		<td>Set the limit of accepted clients connections on the server. If this limit is reached, new connections will be rejected until connected clients disconnects.</td>
+	</tr>
+</table>
 
 
+
+#### Configuration
 Use theses to set configs options specific to your server. You could just set properties in your classe but these methods provide a more centralized environement that is used, by exemple, to apply same config to a new server instance when it's rebooted.
 
-* set_config();
-* get_config();
+<table>
+	<tr>
+		<th>Method</th>
+		<th>Parameters</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td><strong>set_config()</strong></td>
+		<td>
+			<ul>
+				<li>properties&nbsp;-&nbsp;array(key=>value)</li>
+			</ul>
+		</td>
+		<td>Set config properties on server by passing an array of key and values pairs.</td>
+	</tr>
+	<tr>
+		<td><strong>get_config()</strong></td>
+		<td>
+			<ul>
+				<li>property&nbsp;-&nbsp;string</li>
+			</ul>
+		</td>
+		<td>Retreive the value of a config property by passing its name.</td>
+	</tr>
+</table>
 
 
+
+#### Filtering clients
 Use theses to retrieve clients lists or infos about connected clients.
 
-* list_clients();
-* get_clients_count();
-* get_clients();
-* get_clients_from_group();
+<table>
+	<tr>
+		<th>Method</th>
+		<th>Parameters</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td><strong>list_clients()</strong></td>
+		<td>
+			<ul>
+				<li>properties&nbsp;-&nbsp;array()</li>
+				<li>clients&nbsp;-&nbsp;array()</li>
+			</ul>
+		</td>
+		<td>Return an array of clients each containing an array of desired properties.</td>
+	</tr>
+	<tr>
+		<td><strong>get_clients_count()</strong></td>
+		<td></td>
+		<td>Return connected clients count (handshaked or not).</td>
+	</tr>
+	<tr>
+		<td><strong>get_clients()</strong></td>
+		<td>
+			<ul>
+				<li>exceptions&nbsp;-&nbsp;array()&nbsp;||&nbsp;SocketClient()</li>
+			</ul>
+		</td>
+		<td>Return an array of all clients except those passed in parameter.</td>
+	</tr>
+	<tr>
+		<td><strong>get_clients_from_group()</strong></td>
+		<td>
+			<ul>
+				<li>group&nbsp;-&nbsp;SocketClient()->get_group()</li>
+				<li>exceptions&nbsp;-&nbsp;array()&nbsp;||&nbsp;SocketClient()</li>
+			</ul>
+		</td>
+		<td>Return an array of all clients in the same group as the group passed in parameter.</td>
+	</tr>
+</table>
 
-Use theses to send data to all clients or specific clients.
 
-* send();
-* send_to_all();
-* send_to_others();
-* send_to_others_in_group();
-* send_to_group();
 
-Use these to force disconnect a client.
+#### Sending data to clients
+Use theses to send data to all clients or specific clients. All data are separated in two parts : the action name and the content. The content will be converted in JSON automatically before being sent.
 
-* disconnect();
+<table>
+	<tr>
+		<th>Method</th>
+		<th>Parameters</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td><strong>send()</strong></td>
+		<td>
+			<ul>
+				<li>client&nbsp;-&nbsp;array()&nbsp;||&nbsp;SocketClient()</li>
+				<li>action&nbsp;-&nbsp;string</li>
+				<li>content&nbsp;-&nbsp;array()&nbsp;||&nbsp;string</li>
+			</ul>
+		</td>
+		<td>Send data to a client or an array of clients.</td>
+	</tr>
+	<tr>
+		<td><strong>send_to_all()</strong></td>
+		<td>
+			<ul>
+				<li>action&nbsp;-&nbsp;string</li>
+				<li>content&nbsp;-&nbsp;array()&nbsp;||&nbsp;string</li>
+			</ul>
+		</td>
+		<td>Send data to all clients.</td>
+	</tr>
+	<tr>
+		<td><strong>send_to_others()</strong></td>
+		<td>
+			<ul>
+				<li>client&nbsp;-&nbsp;array()&nbsp;||&nbsp;SocketClient()</li>
+				<li>action&nbsp;-&nbsp;string</li>
+				<li>content&nbsp;-&nbsp;array()&nbsp;||&nbsp;string</li>
+			</ul>
+		</td>
+		<td>Send data to all clients except those passed in parameter.</td>
+	</tr>
+	<tr>
+		<td><strong>send_to_others_in_group()</strong></td>
+		<td>
+			<ul>
+				<li>client&nbsp;-&nbsp;SocketClient()</li>
+				<li>action&nbsp;-&nbsp;string</li>
+				<li>content&nbsp;-&nbsp;array()&nbsp;||&nbsp;string</li>
+			</ul>
+		</td>
+		<td>Send data to other clients in the same group as the group on the client passed in parameter.</td>
+	</tr>
+	<tr>
+		<td><strong>send_to_group()</strong></td>
+		<td>
+			<ul>
+				<li>group&nbsp;-&nbsp;SocketClient()->get_group()</li>
+				<li>action&nbsp;-&nbsp;string</li>
+				<li>content&nbsp;-&nbsp;array()&nbsp;||&nbsp;string</li>
+			</ul>
+		</td>
+		<td>Send data to every clients of the same group.</td>
+	</tr>
+</table>
+
+
+
+#### Other methods
+
+<table>
+	<tr>
+		<th>Method</th>
+		<th>Parameters</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td><strong>disconnect()</strong></td>
+		<td>
+			<ul>
+				<li>client&nbsp;-&nbsp;SocketClient()</li>
+			</ul>
+		</td>
+		<td>Close the connection between a client and the server.</td>
+	</tr>
+</table>
+
+
+## Front-end
+
+Until this doc is completed, please look at the demos !
 
 
 TODOs list
@@ -145,7 +383,7 @@ TODOs list
 - [x] Create an Admin Control Panel demo
 - [x] Create an Hello World demo
 - [ ] Create a simple game demo
-- [ ] Add more details about APIs methods in README.md file
+- [/] Add more details about APIs methods in README.md file
 - [/] Clean the core PHP code
 - [ ] Add possibility to set different output modes in each server instances instead of common config file
 - [ ] Add an admin command to buffer server output and retrieve it via client to remotely see PHP errors
