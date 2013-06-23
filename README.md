@@ -1,26 +1,45 @@
 Websocket Framework v0.0.1
 ======================================
 
-This project provide a way to easily create websocket servers as well as clients. You won't have to deal with socket listening, handshacking, data unmasking and such, it's all done by the framework, all you have to do is create what you have in mind !
+<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshot-server.gif" width="300" align="right" title="Server cmd prompt">
+This project provide a way to easily create websocket servers as well as clients.
+You won't have to deal with socket listening, handshacking, data unmasking and such, it's all done by the framework.
+**All you'll have to do is : create what you have in mind !**
 
 **Licence :** GNU General Public License, version 3.0 (GPLv3)
 
-**Please note :** this is an early version so the API is likely to change a bit in future versions.
+**Please note :** this is an early version so the API is likely to change eventually.
 
 
 Features
 -------------------------
 * **Easy** to use API
+* **Only 10 lines of code** to make a working server
 * **Remote control** of servers via a JavaScript client (kick clients, shutdown/reboot server, etc.)
-* **Multiple servers** configuration based on the same core
+* **Multiple servers** architechture based on the same core
 * **A groups system** enabling internal communications between group clients (like a chatrooms in a chat)
 * **Connected clients limit** to prevent your servers from exploding
 
 Demos included
 -------------------------
-* An "HelloWorld" server
-* A simple **chat server**
-* An **admin control panel**
+<table>
+	<tr>
+		<th>Hello world ! server</th>
+		<th>Basic Chat server</th>
+		<th>Administrator control panel</th>
+	</tr>
+	<tr>
+		<td>
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/public/helloworld/images/screenshot.gif" width="210">
+		</td>
+		<td>
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/public/chat/images/screenshot.gif" width="210">
+		</td>
+		<td>
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/public/admin/images/screenshot.gif" width="210">
+		</td>
+	</tr>
+</table>
 
 
 Instructions
