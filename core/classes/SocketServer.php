@@ -102,11 +102,11 @@ class SocketServer
 	
 	protected function disconnect($client)
 	{
-		output("logout : ".$client->id);
+		output("disconnected : ".$client->id);
 		@socket_shutdown($client->socket,2);
 		@socket_close($client->socket);
 		$this->remove_client($client);
-		$this->exec_method("on_client_logout",array($client));
+		$this->exec_method("on_client_disconnect",array($client));
 	}
 	
 	// PRIVATE
@@ -145,7 +145,7 @@ class SocketServer
 				case "login" : if(REMOTE_ADMIN_ACCESS){if($client->is_admin()){$this->sys_send($client,"alert","You are already admin.");}else if($this->get_config("admin_password")===$json->content){$client->grant_admin(); $this->sys_send($client,"alert","You are now admin.");}else{ $this->sys_send($client,"alert","Access denied.");}} break;
 				case "logout" : if(REMOTE_ADMIN_ACCESS){if($client->is_admin()){$client->revoke_admin(); $this->sys_send($client,"alert","Your admin privilege have been revoked.");}else{$this->sys_send($client,"alert","Your where already loged out.");}} break;
 				case "kick" : if($this->do_if_admin($client)){$c=$this->get_client_by_id($json->content); if($c&&$client->id!==$json->content){$this->sys_send($c,"alert","Kicked by an admin."); $this->disconnect($c);}} break;
-				case "shutdown" : if($this->do_if_admin($client)){$this->sys_send_to_all("alert","The server have been sutdown by an admin."); $this->is_running=false;} break;
+				case "shutdown" : if($this->do_if_admin($client)){$this->sys_send_to_all("alert","The server have been shutdown by an admin."); $this->is_running=false;} break;
 				case "reboot" : if($this->do_if_admin($client)){$this->sys_send_to_all("reboot"); $this->sys_disconnect_all(); $this->reboot_on_shutdown=true; $this->is_running=false;} break;
 				case "sleep" : if($this->do_if_admin($client)){sleep(intval($json->content));} break;
 				case "clients_count" : if($this->do_if_admin($client)){$this->sys_send($client,"alert",$this->get_clients_count()." clients connected.");} break;
@@ -221,7 +221,7 @@ class SocketServer
 				$client->id=isset($vars["cookie"])?$vars["cookie"]:uniqid();
 				$this->sys_send($client,"set_cookie",$client->id);
 				$this->exec_method("on_client_handshake",array($client,$headers,$vars));
-				output("login : ".$client->id);
+				output("handshaked : ".$client->id);
 				//debug("Done handshaking.");
 				return true;
 			}
@@ -236,7 +236,8 @@ class SocketServer
 		{
 			$client=new SocketClient($socket);
 			$this->add_client($client);
-			$this->exec_method("on_client_login",array($client));
+			$this->exec_method("on_client_connect",array($client));
+			output("A client is connecting...");
 			return $client;
 		}
 		else

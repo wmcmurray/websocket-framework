@@ -1,32 +1,26 @@
-body { margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:13px; color:#333;}
-h2 { margin-top: 50px;}
-h2:first-child { margin-top: 20px;}
-#header { background:#CCC; min-height:50px; border-bottom:#999 1px solid;}
-#header_inner { padding:10px;}
-#header_inner ul { list-style:none; padding:0px; margin:0px; text-align:center;}
-#header_inner ul li { display:inline-block;}
-#header_inner ul li.active a { background:#888!important; color:#000;}
-#header_inner ul li a { border-radius:5px; display:block; padding:5px; color:#333; text-decoration:none; background:#bbb;}
-#header_inner ul li a:hover { background:#aaa;}
-
-#content,#header_inner { min-width:300px; max-width:900px; margin:0px auto;}
-#content{}
+#demo
+{
+	margin-top: 20px;
+}
 
 #messages
 {
+	box-shadow: rgba(0,0,0,0.2) 0px 1px 5px inset;
 	border-radius: 5px;
-	width: 878px;
-	padding: 10px;
+	width: 100%;
 	margin: 10px 0px;
 	border: #888 1px solid;
 	background: #eee;
-	min-height: 250px;
+	min-height: 300px;
+	max-height: 300px;
+	overflow-y: scroll;
 }
 
 #messages .message
 {
-	margin-bottom: 3px;
+	padding: 5px 10px;
 	border-top: #ddd 1px solid;
+	word-wrap: break-word;
 }
 
 #messages .message:first-child
@@ -36,9 +30,7 @@ h2:first-child { margin-top: 20px;}
 
 #message_field
 {
-	border-radius: 5px;
-	width: 878px;
+	width: 95%;
 	padding: 10px;
-	border: #888 1px solid;
-	margin: 0px 0px 10px 0px;
+	height: 26px;
 }

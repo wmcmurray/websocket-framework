@@ -1,0 +1,113 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdminCP - Websocket Framework</title>
+
+    <!-- CSS stylesheets -->
+    <link href="../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="../lib/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css">
+    <link href="all.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+    <!-- Navigation bar -->
+    <div class="navbar navbar-static-top">
+        <div class="navbar-inner">
+            <div class="container">
+
+                <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <a class="brand" href="#">Websocket Framework demos</a>
+
+                <div class="nav-collapse collapse">
+                    <p class="navbar-text pull-right" id="console"></p>
+                    <ul class="nav">
+                        <li class="active"><a href="../admin/index.html">AdminCP</a></li>
+                        <li><a href="../chat/index.html">Simple Chat</a></li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container" id="demo">
+        <div class="row-fluid">
+
+            <!-- Left column -->
+            <div class="span3">
+                <div class="well sidebar-nav">
+                    <ul class="nav nav-list">
+                        <li class="nav-header">General actions</li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.init_socket();">Reinitialize socket</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.close();">Close socket</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.ping();">Send ping request</a>
+                        </li>
+
+                        <li class="nav-header">Admin actions</li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('login', prompt('Enter admin password :'));">Login</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('logout');">Logout</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('clients_count');">Get clients count</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('clients_list');">Get clients list</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('kick',prompt('l\'id du client (exemple: 51c4ec7d1bc6f)'));">Kick a client</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="if(confirm('Do you really want to REBOOT the server ?')){client.socket.sys_send('reboot');}">Reboot server</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="if(confirm('Do you really want to SHUTDOWN the server ?')){client.socket.sys_send('shutdown');}">Shutdown server</a>
+                        </li>
+                    </ul>
+                </div>
+                <small class="muted">Note that the default password for this demo is "<strong>admin</strong>" if you haven't changed it.</small>
+            </div>
+
+
+            <!-- Right column -->
+            <div class="span9">
+                <div id="admin-cp-console"></div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <!-- JavaScript files -->
+    <script src="../lib/jquery-2.0.2.min.js"></script>
+    <script src="../lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../lib/SocketClient.js"></script>
+    <script src="js/AdminCP.js"></script>
+    <script>
+
+        // Client Initialization
+        var client;
+        jQuery(document).ready(function()
+        {
+            client = new AdminCP("127.0.0.1", "8081");
+        });
+
+    </script>
+</body>
+</html>

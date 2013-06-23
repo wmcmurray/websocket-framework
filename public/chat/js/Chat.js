@@ -1,5 +1,5 @@
 //===========================================================
-// ===== Chat() ===========================================
+// ===== Chat() =============================================
 //===========================================================
 
 function Chat(address, port)
@@ -9,53 +9,51 @@ function Chat(address, port)
 	this.init = function()
 	{
 		this.me = new Chat_user("CHAT_PREFS");
-		this.chatroom = "MAIN_CHATROOM";		// le nom de la salle de chat auquel on se connectera
+		this.chatroom = "MAIN_CHATROOM"; // the name of the chatroom clients gonna join
 		this.init_socket();
 	}
 	
 	this.init_socket = function()
 	{
-		this.socket = new SocketClient(address,port);
+		// instanciate the SocketClient class
+		this.socket = new SocketClient(address, port);
 
-		// eventListener de quand la socket est ouverte
-		this.socket.on("open",function(){
+		// eventListener executed when socket is opened
+		this.socket.on("open", function(){
 			
-			// demande au serveur la liste des clients connectées dans la chatroom
+			// ask the server for the list of connected users
 			setTimeout(function(){ self.socket.send("list_clients"); }, 100);
 			
-			// demande au serveur la liste des messages sauvegardés
+			// ask the server for the list of last saved messages
 			setTimeout(function(){ self.socket.send("list_messages"); }, 200);
 
-			// affiche un msg dans la console JS
 			self.socket.sys_alert("Socket opened.");
 		});
 		
-		// eventListener de quand le serveur envoit un message
+		// eventListener executed when receiving a message from server
 		this.socket.on("message", this.handle_messages);
 
-		// eventListener de quand il se produit une erreur
-		this.socket.on("error",function(e){alert(e.type);});
+		// eventListener executed when an error occurs
+		this.socket.on("error", function(e){ self.socket.sys_alert("An error occured."); });
 
-		// eventListener de quand la socket est fermée
-		this.socket.on("close",function(){self.socket.sys_alert("Socket closed.");});
+		// eventListener executed when socket is closed
+		this.socket.on("close", function(e){ self.socket.sys_alert("Socket closed with code : " + e.code); });
 
-		// eventListener de quand le serveur envoie des messages d'alerte
-		this.socket.on("alert",function(t){console.log("WS : "+t);});
+		// eventListener executed when server send alerts
+		this.socket.on("alert", function(t){ document.getElementById("console").innerHTML = t; });
 
-		// eventListener de quand le serveur envoie le résultat d'une requête ping
-		this.socket.on("ping",function(ms){alert("Your ping is "+Math.round(ms*1000)/1000)+" milliseconds";});
-
-		// ouverture de la socket, il est possible de passé des variables comme ont le fait dans une URL
+		// opening of the socket
+		self.socket.sys_alert("Trying to open the socket...");
 		this.socket.open("chatroom="+this.chatroom+"&username="+this.me.prefs.username);
 	}
 
-	// permet d'envoyer un message aux autres clients de la même salle de chat
+	// send a message to the server
 	this.send_message = function(msg)
 	{
 		this.socket.send("send_message", msg);
 	}
 
-	// permet de changer son nom d'utilisateur
+	// change our username and send it to the server
 	this.change_username = function(new_username)
 	{
 		this.me.prefs.username = new_username;
@@ -63,18 +61,19 @@ function Chat(address, port)
 		this.socket.send("change_username", new_username);
 	}
 
-	// méthode qui gère la réception de données en provenance du serveur
+	// this method handle all incoming data from the server
 	this.handle_messages = function(data)
 	{
 		switch(data.action)
 		{
+			// display a message when we receive one
 			case "message" :
-				// affiche le message reçu
 				self.display_message(data.content.client, data.content.message);
 			break;
 
+			// when receiving a list of connected clients from server, we display it in the DOM
 			case "list_clients" :
-				// affiche la liste des clients connectés
+				
 				var div = jQuery("#clients_list").html("")[0];
 				for(var i in data.content)
 				{
@@ -87,32 +86,34 @@ function Chat(address, port)
 
 					div.innerHTML = div.innerHTML + (div.innerHTML == "" ? "" : ", ") + username;
 				}
+
+				jQuery(div).stop().css({opacity: 0}).animate({opacity: 1}, 500);
 			break;
 
 			case "list_messages" :
-				// vide les message affichés
+				// empty messages div
 				jQuery("#messages").html("");
 
-				// affiche la liste des anciens messages
+				// display last saved messages
 				for(var i in data.content)
 				{
 					self.display_message(data.content[i].client, data.content[i].message);
 				}
 			break;
 			
-			case "login" :
-				// update la liste des clients connectés
+			// when a client sucessfully connected and handshaked the server, we ask for a fresh list of connected users
+			case "handshake" :
 				self.socket.send("list_clients");
 			break;
 			
-			case "logout" :
-				// update la liste des clients connectés
+			// when a client disconnect, we ask the server for a fresh list of connected users
+			case "disconnect" :
 				self.socket.send("list_clients");
 			break;
 		}
 	}
 
-	// affiche un message reçu
+	// display a received message and scroll down to it
 	this.display_message = function(client, message)
 	{
 		var div = document.createElement("div");
@@ -120,8 +121,13 @@ function Chat(address, port)
 		.html("<strong>" + client + " said :</strong> " + message)
 		.css({opacity: 0})
 		.animate({opacity: 1}, 500);
-		jQuery("#messages").append(div);
+		
+		jQuery("#messages")
+		.append(div)
+		.stop()
+		.animate({"scrollTop" : jQuery("#messages")[0].scrollHeight}, 500);
 	}
 	
+	// initialization
 	this.init();
 }

@@ -5,11 +5,13 @@ This project provide a way to easily create websocket servers as well as clients
 
 **Licence :** GNU General Public License, version 3.0 (GPLv3)
 
+**Please note :** this is an early version so the API is likely to change a bit in future versions.
+
 
 Features
 -------------------------
 * **Easy** to use API
-* **Control your servers remotely** from a JavaScript client with the Admin API (kick clients, shutdown server, etc.)
+* **Remote control** of servers via a JavaScript client (kick clients, shutdown/reboot server, etc.)
 * **Multiple servers** configuration based on the same core
 * **A groups system** enabling internal communications between group clients (like a chatrooms in a chat)
 * **Connected clients limit** to prevent your servers from exploding
@@ -17,6 +19,7 @@ Features
 Included demos
 -------------------------
 * A simple **Chat server**
+* A server admin **Control Panel**
 
 How to create a server
 -------------------------
@@ -90,9 +93,9 @@ Server events
 -------------------------
 You can declare theses methods in your extended class, theses will be executed when the event is fired on the server.
 
-* on_client_login();
+* on_client_connect();
 * on_client_handshake();
-* on_client_logout();
+* on_client_disconnect();
 * on_server_shutdown();
 
 
@@ -135,10 +138,12 @@ Use these to force disconnect a client.
 TODOs list
 ======================================
 - [x] Clean this README.md file
+- [x] Clean demos code and integrate twitter bootstrap
+- [x] Create an Admin Control Panel demo
 - [ ] Add more details about APIs methods in README.md file
-- [ ] Clean demos code and integrate twitter bootstrap
-- [ ] Create an Admin API demo
 - [ ] Clean the core PHP code
+- [ ] Add possibility to set different output modes in each server instances instead of common config file
+- [ ] Add an admin command to buffer server output and retrieve it via client to remotely see PHP errors and such
 - [ ] Find a way to redefine the server class when server is rebooted remotely by an admin
 - [ ] Add a way to ban a client definitively with the Admin API
 
