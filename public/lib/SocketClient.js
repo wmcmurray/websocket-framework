@@ -48,6 +48,9 @@ function SocketClient(address,port)
 		
 		this.stay_closed=false;//true|false, défini si le chat tentera de se reconnecté après un event onclose
 		this.debug("Socket initalised.");
+
+		// attempt to close socket before pageunload
+		//jQuery(window).on('beforeunload', function(){ self.close(); });
 	}
 	
 	this.on = function(evt,fnc)
@@ -96,7 +99,7 @@ function SocketClient(address,port)
 				
 				if(data.action)
 				{
-					self.fire_event("message",data);
+					self.fire_event("message", data);
 				}
 				else if(data.sys)
 				{
@@ -104,8 +107,8 @@ function SocketClient(address,port)
 					{
 						case "set_cookie": self.clientID=data.content; setCookie(self.cookie_name,data.content,30); break;
 						case "alert": self.sys_alert(data.content); break;
-						case "reboot": self.sys_alert("The server will reboot."); setTimeout(function(){self.open(self.last_opening_vars);},3000); break;
-						case "ping": self.fire_event("ping",(data.content-self.ping_start)); self.ping_start=null; break;
+						case "reboot": setTimeout(function(){self.open(self.last_opening_vars);},3000); break;
+						case "ping": self.fire_event("ping", (new Date().getTime()-self.ping_start)); self.ping_start=null; break;
 					}
 				}
 			}
@@ -174,7 +177,7 @@ function SocketClient(address,port)
 	{
 		if(!this.ping_start)
 		{
-			this.ping_start=parseInt(new Date().getTime()/1000);
+			this.ping_start = new Date().getTime();
 			this.sys_send("ping");
 		}
 	}

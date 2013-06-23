@@ -32,10 +32,22 @@ class AdminCP_SocketServer extends SocketServer
 		$this->send_to_others($client, "disconnect", $client->id);
 	}
 
+	// when a client is kicked
+	protected function on_client_kick($client)
+	{
+		$this->send($client, "kicked");
+	}						
+
 	// when the server is closing
 	protected function on_server_shutdown()
 	{
 		$this->send_to_all("shutdown");
+	}
+
+	// when the server is rebooting
+	protected function on_server_reboot()
+	{
+		$this->send_to_all("reboot");
 	}
 }
 

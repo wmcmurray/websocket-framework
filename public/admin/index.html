@@ -59,7 +59,7 @@
 
                         <li class="nav-header">Admin actions</li>
                         <li>
-                            <a href="javascript:void(0);" onclick="client.socket.sys_send('login', prompt('Enter admin password :'));">Login</a>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('login', prompt('Enter admin password :', 'admin'));">Login</a>
                         </li>
                         <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('logout');">Logout</a>
@@ -71,7 +71,10 @@
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('clients_list');">Get clients list</a>
                         </li>
                         <li>
-                            <a href="javascript:void(0);" onclick="client.socket.sys_send('kick',prompt('l\'id du client (exemple: 51c4ec7d1bc6f)'));">Kick a client</a>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('kick',prompt('Enter client ID (exemple: 51c4ec7d1bc6f)'));">Kick a client</a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('sleep',prompt('How much time ? (in seconds)'));">Sleep server</a>
                         </li>
                         <li>
                             <a href="javascript:void(0);" onclick="if(confirm('Do you really want to REBOOT the server ?')){client.socket.sys_send('reboot');}">Reboot server</a>
@@ -81,7 +84,6 @@
                         </li>
                     </ul>
                 </div>
-                <small class="muted">Note that the default password for this demo is "<strong>admin</strong>" if you haven't changed it.</small>
             </div>
 
 

@@ -1,0 +1,1 @@
+php ../my_servers/admin.php -q

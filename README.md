@@ -96,7 +96,9 @@ You can declare theses methods in your extended class, theses will be executed w
 * on_client_connect();
 * on_client_handshake();
 * on_client_disconnect();
+* on_client_kick();
 * on_server_shutdown();
+* on_server_reboot();
 
 
 Server methods
@@ -141,7 +143,7 @@ TODOs list
 - [x] Clean demos code and integrate twitter bootstrap
 - [x] Create an Admin Control Panel demo
 - [ ] Add more details about APIs methods in README.md file
-- [ ] Clean the core PHP code
+- [/] Clean the core PHP code
 - [ ] Add possibility to set different output modes in each server instances instead of common config file
 - [ ] Add an admin command to buffer server output and retrieve it via client to remotely see PHP errors and such
 - [ ] Find a way to redefine the server class when server is rebooted remotely by an admin

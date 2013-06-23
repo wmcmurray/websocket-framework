@@ -32,7 +32,7 @@ function AdminCP(address, port)
 		this.socket.on("alert", function(t){ self.display_log(t); });
 
 		// eventListener executed when server return a ping request
-		this.socket.on("ping", function(ms){ self.display_log("Your ping is "+(Math.round(ms*1000)/1000)+" milliseconds"); });
+		this.socket.on("ping", function(ms){ self.display_log("Your ping is "+ ms +" milliseconds"); });
 
 		// opening of the socket
 		self.socket.sys_alert("Trying to open the socket...");
@@ -59,9 +59,19 @@ function AdminCP(address, port)
 				self.display_log("User #" + data.content + " disconnected.");
 			break;
 
+			// when kicked
+			case "kicked" :
+				self.display_log("You have been kicked by and administrator.");
+			break;
+
 			// when server is shutdown
 			case "shutdown" :
 				self.display_log("SHUTDOWN.");
+			break;
+
+			// when server is rebooted
+			case "reboot" :
+				self.display_log("REBOOT...");
 			break;
 		}
 	}
