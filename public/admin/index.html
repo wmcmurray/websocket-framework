@@ -24,7 +24,7 @@
                     <span class="icon-bar"></span>
                 </button>
 
-                <a class="brand" href="#">Websocket Framework demos</a>
+                <a class="brand" href="https://github.com/wmcmurray/websocket-framework" target="_blank">Websocket Framework</a>
 
                 <div class="nav-collapse collapse">
                     <p class="navbar-text pull-right" id="console"></p>
@@ -46,13 +46,11 @@
             <!-- Left column -->
             <div class="span3">
 
-                <input href="javascript:void(0);" class="btn input-block-level btn-inverse" onclick="client.socket.sys_send('login', prompt('Enter admin password :', 'admin'));" value="login">
+                <div class="login-buttons">
+                    <input type="button" class="btn input-block-level btn-inverse" onclick="client.socket.sys_send('login', prompt('Enter admin password :', 'admin'));" value="login">
 
-                <br>
-
-                <input href="javascript:void(0);" class="btn input-block-level btn-inverse" onclick="client.socket.sys_send('logout');" value="Logout">
-
-                <br>
+                    <input type="button" class="btn input-block-level btn-inverse" onclick="client.socket.sys_send('logout');" value="Logout">
+                </div>
 
                 <div class="well sidebar-nav">
                     <ul class="nav nav-list">

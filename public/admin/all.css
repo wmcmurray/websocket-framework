@@ -21,3 +21,9 @@
 {
 	white-space: pre-line;
 }
+
+.login-buttons input[type=button]
+{
+	width: 100%;
+	margin-bottom: 10px;
+}
