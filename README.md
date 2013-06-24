@@ -45,7 +45,7 @@ Demos included
 
 Ressources for developers
 -------------------------
-* [How to use](https://github.com/wmcmurray/websocket-framework/wiki/How-to-use-%3F)
+* [How to use](https://github.com/wmcmurray/websocket-framework/wiki/How-to-use)
 * [API reference : server](https://github.com/wmcmurray/websocket-framework/wiki/API-reference-:-server)
 * [API reference : client](https://github.com/wmcmurray/websocket-framework/wiki/API-reference-:-client)
 
@@ -56,10 +56,10 @@ TODOs list
 - [x] Clean demos code and integrate twitter bootstrap
 - [x] Create an Admin Control Panel demo
 - [x] Create an Hello World demo
-- [ ] Create a simple game demo
-- [/] Add more details about APIs methods in README.md file
-- [/] Clean the core PHP code
 - [x] Add possibility to set different output modes in each server instances instead of common config file
+- [/] Add more details about APIs methods in README.md file (client side)
+- [/] Clean the core PHP code
+- [ ] Create a simple game demo
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
 - [ ] Find a way to redefine the server class when server is rebooted remotely by an admin
 - [ ] Add a way to ban a client definitively with the Admin API
