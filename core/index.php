@@ -4,7 +4,6 @@ define("REMOTE_ADMIN_ACCESS", in_array("-admin", $argv) ? true : false);	// (tru
 define("VERBOSE_MODE", in_array("-verbose", $argv) ? true : false);			// (true|false), define if the server will output what is happening
 define("DEBUG_MODE", in_array("-debug", $argv) ? true : false);				// (true|false), define if the server will output debuging infos
 define("WARNING_MODE", in_array("-warn", $argv) ? true : false);			// (true|false), define if the server will output warnings
-define("DEFAULT_ADMIN_PASSWORD", "root");									// the default password for accessing admin control over the server
 
 ob_start();
 error_reporting(DEBUG_MODE ? E_ALL : 0);

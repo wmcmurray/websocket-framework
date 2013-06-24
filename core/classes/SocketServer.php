@@ -3,14 +3,15 @@
 $SocketServer_new_instance;
 class SocketServer
 {
-	private $server_name = "SERVER";
+	private $server_name 	= "SERVER"; // default server name
+	private $admin_password = "root";	// default admin password
+	private $max_clients 	= 1000;		// default connected clients limit
 	private $config = array();
-	private $master_socket;
 	private $clients = array();
 	private $events_listeners = array();
+	private $master_socket;
 	private $is_running;
 	private $reboot_on_shutdown;
-	private $max_clients = 1000;
 	
 	// PUBLIC
 	//==========================================================
@@ -18,9 +19,6 @@ class SocketServer
 	{
 		$this->address = $address;
 		$this->port = $port;
-		$this->set_config(array(
-			"admin_password" => DEFAULT_ADMIN_PASSWORD
-		));
 		$this->init();
 		$this->init_socket();
 	}
@@ -114,7 +112,7 @@ class SocketServer
 	}
 	public function set_admin_password($password = "")
 	{
-		$this->set_config(array("admin_password" => $password));
+		$this->admin_password = $password;
 	}
 
 	public function set_server_name($name = "")
@@ -421,7 +419,7 @@ class SocketServer
 					{
 						$this->sys_send($client, "alert", "You are already admin.");
 					}
-					else if($this->get_config("admin_password") === $json->content)
+					else if($this->admin_password === $json->content)
 					{
 						$client->grant_admin();
 						$this->sys_send($client, "alert", "You are now admin.");

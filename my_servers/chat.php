@@ -8,7 +8,6 @@ class Chat_SocketServer extends SocketServer
 	protected function init()
 	{
 		$this->set_server_name("Chat Server");
-		$this->set_admin_password("caca");
 		$this->set_max_clients(50);
 		$this->set_config(array(
 			"messages_kept" => 10 // quantity of saved last messages
