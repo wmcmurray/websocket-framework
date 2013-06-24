@@ -3,7 +3,7 @@ Websocket Framework v0.0.1
 
 <img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshot-server.gif" width="300" align="right" title="Server cmd prompt">
 This project provide a way to easily create websocket servers as well as clients.
-You won't have to deal with socket listening, handshacking, data unmasking and such, it's all done by the framework.
+You won't have to deal with socket listening, handshaking, data unmasking and such, it's all done by the framework.
 **All you'll have to do is : create what you have in mind !**
 
 **Licence :** GNU General Public License, version 3.0 (GPLv3)
@@ -73,7 +73,7 @@ How to create a server
 
 **Exemple :** executable file "/executables/MyServer.bat" :
 
-	php ../my_servers/MyServer.php -q
+	php ../my_servers/MyServer.php -verbose
 
 How to handle data received by server
 -------------------------
@@ -114,11 +114,35 @@ How to setup a JavaScript client
 Until this doc is completed, please look at the demos !
 
 
-
 API Reference
 ======================================
 
-## Back-end
+## Server side (back-end)
+
+### Command line interface options
+You can add options when starting the server from command prompt which will affect server behavior. Here is a list of available options :
+
+<dl>  
+  <dt>-admin</dt>
+  <dd>Enable remote admin access. If not specified, all admin actions will be disabled.</dd>
+
+  <dt>-verbose</dt>
+  <dd>Server will output what's happening. (clients connections, handshake, etc.)</dd>
+
+  <dt>-debug</dt>
+  <dd>Server will output some additional infos that may help you debuging.</dd>
+
+  <dt>-warn</dt>
+  <dd>Server will output warnings when something suspicious happens, like a client trying to access admin commands without being admin.</dd>
+</dl>
+
+A typical **development** server setting may look like this :
+
+	php ../my_servers/MyServer.php -admin -verbose -debug
+
+and a **production** server setting may look like this :
+
+	php ../my_servers/MyServer.php -admin -warn
 
 ### Server events
 You can declare theses methods in your extended class, theses will be executed when the event is fired on the server.
@@ -390,7 +414,7 @@ Use theses to send data to all clients or specific clients. All data are separat
 </table>
 
 
-## Front-end
+## Client side (Front-end)
 
 Until this doc is completed, please look at the demos !
 
@@ -404,8 +428,8 @@ TODOs list
 - [ ] Create a simple game demo
 - [/] Add more details about APIs methods in README.md file
 - [/] Clean the core PHP code
-- [ ] Add possibility to set different output modes in each server instances instead of common config file
-- [ ] Add an admin command to buffer server output and retrieve it via client to remotely see PHP errors
+- [x] Add possibility to set different output modes in each server instances instead of common config file
+- [ ] Add an admin command to buffer server errors and retrieve them via remote client
 - [ ] Find a way to redefine the server class when server is rebooted remotely by an admin
 - [ ] Add a way to ban a client definitively with the Admin API
 

@@ -29,9 +29,9 @@
                 <div class="nav-collapse collapse">
                     <p class="navbar-text pull-right" id="console"></p>
                     <ul class="nav">
-                        <li><a href="../helloworld/index.html">Hello World</a></li>
-                        <li class="active"><a href="../admin/index.html">AdminCP</a></li>
-                        <li><a href="../chat/index.html">Simple Chat</a></li>
+                        <li><a href="../helloworld/index.html"><i class="icon-bullhorn"></i> Hello World</a></li>
+                        <li class="active"><a href="../admin/index.html"><i class="icon-off"></i> AdminCP</a></li>
+                        <li><a href="../chat/index.html"><i class="icon-comment"></i> Simple Chat</a></li>
                     </ul>
                 </div>
 
@@ -45,28 +45,18 @@
 
             <!-- Left column -->
             <div class="span3">
+
+                <input href="javascript:void(0);" class="btn input-block-level btn-inverse" onclick="client.socket.sys_send('login', prompt('Enter admin password :', 'admin'));" value="login">
+
+                <br>
+
+                <input href="javascript:void(0);" class="btn input-block-level btn-inverse" onclick="client.socket.sys_send('logout');" value="Logout">
+
+                <br>
+
                 <div class="well sidebar-nav">
                     <ul class="nav nav-list">
-                        <li class="nav-header">General actions</li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="client.init_socket();">Reinitialize socket</a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="client.socket.close();">Close socket</a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="client.socket.ping();">Send ping request</a>
-                        </li>
-
-                        <li class="nav-header">Admin access</li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="client.socket.sys_send('login', prompt('Enter admin password :', 'admin'));">Login</a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="client.socket.sys_send('logout');">Logout</a>
-                        </li>
-
-                        <li class="nav-header">Admin clients management</li>
+                        <li class="nav-header">Clients management</li>
                         <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('clients_count');">Get clients count</a>
                         </li>
@@ -77,7 +67,10 @@
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('kick',prompt('Enter client ID (exemple: 51c4ec7d1bc6f)'));">Kick a client</a>
                         </li>
 
-                        <li class="nav-header">Admin server management</li>
+                        <li class="nav-header">Server management</li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('options');">Get options</a>
+                        </li>
                         <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('sleep',prompt('How much time ? (in seconds)'));">Sleep server</a>
                         </li>
@@ -86,6 +79,11 @@
                         </li>
                         <li>
                             <a href="javascript:void(0);" onclick="if(confirm('Do you really want to SHUTDOWN the server ?')){client.socket.sys_send('shutdown');}">Shutdown server</a>
+                        </li>
+
+                        <li class="nav-header">Errors management</li>
+                        <li>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('last_error');">Get last error</a>
                         </li>
                     </ul>
                 </div>

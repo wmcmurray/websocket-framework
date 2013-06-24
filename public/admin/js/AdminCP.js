@@ -8,17 +8,6 @@ function AdminCP(address, port)
 	
 	this.init = function()
 	{
-		this.init_socket();
-	}
-	
-	this.init_socket = function()
-	{
-		// close current socket in already opened
-		if(this.socket)
-		{
-			this.socket.close();
-		}
-
 		// instanciate the SocketClient class
 		this.socket = new SocketClient(address, port);
 
@@ -31,14 +20,8 @@ function AdminCP(address, port)
 		// eventListener executed when an error occurs
 		this.socket.on("error", function(e){ self.display_log("An error occured."); });
 
-		// eventListener executed when socket is closed
-		this.socket.on("close", function(e){ self.display_log("Socket closed with code : " + e.code); });
-
 		// eventListener executed when server send alerts
 		this.socket.on("alert", function(t){ self.display_log(t); });
-
-		// eventListener executed when server return a ping request
-		this.socket.on("ping", function(ms){ self.display_log("Your ping is "+ ms +" milliseconds"); });
 
 		// opening of the socket
 		self.display_log("Trying to open the socket...");

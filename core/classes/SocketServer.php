@@ -43,7 +43,9 @@ class SocketServer
 		while($this->is_running)
 		{
 			$changed_sockets = $this->get_all_sockets();
-			@socket_select($changed_sockets, $write = NULL, $except = NULL, 1);
+			$write  = NULL;
+			$except = NULL;
+			@socket_select($changed_sockets, $write, $except, 1);
 			
 			foreach($changed_sockets as $socket)
 			{
@@ -240,7 +242,7 @@ class SocketServer
 	
 	protected function disconnect($client)
 	{
-		output("disconnected : " . $client->id);
+		output("disconnected client #" . $client->id);
 		@socket_shutdown($client->socket, 2);
 		@socket_close($client->socket);
 		$this->remove_client($client);
@@ -391,51 +393,54 @@ class SocketServer
 		
 		else if(isset($json->sys))
 		{
-			$requiring_admin_access = array("kick", "shutdown", "reboot", "sleep", "clients_count", "clients_list");
-			$required = in_array($json->sys, $requiring_admin_access);
+			$requiring_admin_access = array("login", "logout");
+			$requiring_admin_privileges = array("kick", "shutdown", "reboot", "sleep", "clients_count", "clients_list", "last_error", "options");
+			$access_required = in_array($json->sys, $requiring_admin_access);
+			$privileges_required = in_array($json->sys, $requiring_admin_privileges);
 
-			if(($required && $this->do_if_admin($client)) || !$required)
+			if($access_required && !REMOTE_ADMIN_ACCESS)
+			{
+				debug("Remote admin access isn't enabled. (-admin option)");
+				return false;
+			}
+
+			if(($privileges_required && $this->do_if_admin($client)) || !$privileges_required)
 			{
 				debug('Handling system command "' . $json->sys . '"...');
 			}
 			else
 			{
-				output('Warning : client #' . $client->id . ' tried to execute "' . $json->sys . '".');
+				warning('client #' . $client->id . ' tried to execute "' . $json->sys . '".');
 				return false;
 			}
 			
 			switch($json->sys)
 			{
 				case "login":
-					if(REMOTE_ADMIN_ACCESS)
+					if($client->is_admin())
 					{
-						if($client->is_admin())
-						{
-							$this->sys_send($client, "alert", "You are already admin.");
-						}
-						else if($this->get_config("admin_password") === $json->content)
-						{
-							$client->grant_admin();
-							$this->sys_send($client, "alert", "You are now admin.");
-						}
-						else
-						{
-							$this->sys_send($client, "alert", "Access denied.");
-						}
+						$this->sys_send($client, "alert", "You are already admin.");
+					}
+					else if($this->get_config("admin_password") === $json->content)
+					{
+						$client->grant_admin();
+						$this->sys_send($client, "alert", "You are now admin.");
+					}
+					else
+					{
+						warning('client #' . $client->id . ' entered a wrong password in admin login.');
+						$this->sys_send($client, "alert", "Access denied.");
 					}
 				break;
 				case "logout":
-					if(REMOTE_ADMIN_ACCESS)
+					if($client->is_admin())
 					{
-						if($client->is_admin())
-						{
-							$client->revoke_admin();
-							$this->sys_send($client, "alert", "Your admin privilege have been revoked.");
-						}
-						else
-						{
-							$this->sys_send($client, "alert", "Your where already loged out.");
-						}
+						$client->revoke_admin();
+						$this->sys_send($client, "alert", "Your admin privilege have been revoked.");
+					}
+					else
+					{
+						$this->sys_send($client, "alert", "You can't log out if you are not logged in.");
 					}
 				break;
 				case "kick":
@@ -482,6 +487,16 @@ class SocketServer
 						$output .= "\n[" . $k . "] = " . $v->get_profile();
 					}
 					$this->sys_send($client, "alert", $output);
+				break;
+				case "last_error":
+					ob_start();
+					print_r(error_get_last());
+					$err = ob_get_clean();
+
+					$this->sys_send($client, "alert", $err != "" ? $err : "No last error.");
+				break;
+				case "options":
+					$this->sys_send($client, "alert", SCRIPT_OPTIONS);
 				break;
 				case "exit":
 					$this->disconnect($client);
@@ -547,7 +562,6 @@ class SocketServer
 	
 	private function handshake($client, $raw_headers)
 	{
-		//debug("Start handshaking.");
 		//debug($raw_headers);
 		
 		$headers = array();
@@ -572,8 +586,6 @@ class SocketServer
 		
 		if(isset($headers["Sec-WebSocket-Version"]) && isset($headers["Sec-WebSocket-Key"]))
 		{
-			//debug("WebSocket-Version=".$headers["Sec-WebSocket-Version"]);
-			
 			if($headers["Sec-WebSocket-Version"] == 13)
 			{
 				if(preg_match("/GET \/\?(.*) HTTP/", $raw_headers, $match))
@@ -590,6 +602,7 @@ class SocketServer
 				{
 					$vars = array();
 				}
+
 				//if(preg_match("/Host: (.*)\r\n/", $headers, $match)){$host = $match[1];}
 				//if(preg_match("/Origin: (.*)\r\n/", $headers, $match)){$client->referer = $match[1];}
 				//if(preg_match("/User-Agent: (.*)\r\n/", $headers, $match)){$client->user_agent = $match[1];}
@@ -606,8 +619,7 @@ class SocketServer
 				$client->id = isset($vars["cookie"]) ? $vars["cookie"] : uniqid();
 				$this->sys_send($client, "set_cookie", $client->id);
 				$this->exec_method("on_client_handshake", array($client, $headers, $vars));
-				output("handshaked : " . $client->id);
-				//debug("Done handshaking.");
+				output("handshaked client #" . $client->id);
 				return true;
 			}
 		}
@@ -627,7 +639,7 @@ class SocketServer
 		}
 		else
 		{
-			debug("Maximum clients limit reached.");
+			debug("Maximum clients limit of " . $this->max_clients . " reached.");
 			return false;
 		}
 	}

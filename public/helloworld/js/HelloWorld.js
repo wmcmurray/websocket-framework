@@ -8,11 +8,25 @@ function HelloWorld(address, port)
 	
 	this.init = function()
 	{
+		this.init_socket();
+	}
+
+	this.init_socket = function()
+	{
+		// close current socket in already opened
+		if(this.socket)
+		{
+			this.socket.close();
+		}
+
 		// instanciate the SocketClient class
 		this.socket = new SocketClient(address, port);
 
 		// eventListener executed when socket is opened
 		this.socket.on("open", function(){ self.display_log("Socket opened."); });
+
+		// eventListener executed when socket is closed
+		this.socket.on("close", function(e){ self.display_log("Socket closed with code : " + e.code); });
 		
 		// eventListener executed when receiving a message from server
 		this.socket.on("message", this.handle_messages);
@@ -20,10 +34,15 @@ function HelloWorld(address, port)
 		// eventListener executed when an error occurs
 		this.socket.on("error", function(e){ self.display_log("An error occured."); });
 
+		// eventListener executed when server return a ping request
+		this.socket.on("ping", function(ms){ self.display_log("Your ping is "+ ms +" milliseconds"); });
+
 		// opening of the socket
 		self.display_log("Trying to open the socket...");
 		this.socket.open();
 	}
+
+	
 
 	// this method handle all incoming data from the server
 	this.handle_messages = function(data)

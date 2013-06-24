@@ -61,13 +61,13 @@ class SocketClient
 	public function grant_admin()
 	{
 		$this->is_admin = true;
-		output($this->id . " became admin.");
+		output("#" . $this->id . " became admin.");
 	}
 	
 	public function revoke_admin()
 	{
 		$this->is_admin = false;
-		output($this->id . " is no longer admin.");
+		output("#" . $this->id . " is no longer admin.");
 	}
 	
 	public function set_group($name = "")
