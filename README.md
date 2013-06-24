@@ -21,6 +21,14 @@ Features
 * **A groups system** enabling internal communications between group clients (like a chatrooms in a chat)
 * **Connected clients limit** to prevent your servers from exploding
 
+
+Ressources for developers
+-------------------------
+* [How to use](https://github.com/wmcmurray/websocket-framework/wiki/How-to-use)
+* [API reference : server](https://github.com/wmcmurray/websocket-framework/wiki/API-reference-:-server)
+* [API reference : client](https://github.com/wmcmurray/websocket-framework/wiki/API-reference-:-client)
+
+
 Demos included
 -------------------------
 <table>
@@ -42,14 +50,6 @@ Demos included
 	</tr>
 </table>
 
-
-Ressources for developers
--------------------------
-* [How to use](https://github.com/wmcmurray/websocket-framework/wiki/How-to-use)
-* [API reference : server](https://github.com/wmcmurray/websocket-framework/wiki/API-reference-:-server)
-* [API reference : client](https://github.com/wmcmurray/websocket-framework/wiki/API-reference-:-client)
-
-
 TODOs list
 -------------------------
 - [x] Clean this README.md file
@@ -57,10 +57,13 @@ TODOs list
 - [x] Create an Admin Control Panel demo
 - [x] Create an Hello World demo
 - [x] Add possibility to set different output modes in each server instances instead of common config file
-- [/] Add more details about APIs methods in README.md file (client side)
+- [x] Add more details about APIs methods in README.md file (client side)
 - [/] Clean the core PHP code
+- [ ] Create a realtime website demo
 - [ ] Create a simple game demo
+- [ ] Add a raw transport layer (raw_send()) for people who wants full optimisation
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
+- [x] Set PHP errors reporting to E_ALL only if -debug options is set
 - [ ] Find a way to redefine the server class when server is rebooted remotely by an admin
 - [ ] Add a way to ban a client definitively with the Admin API
 

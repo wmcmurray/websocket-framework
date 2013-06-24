@@ -7,7 +7,7 @@ define("WARNING_MODE", in_array("-warn", $argv) ? true : false);			// (true|fals
 define("DEFAULT_ADMIN_PASSWORD", "root");									// the default password for accessing admin control over the server
 
 ob_start();
-error_reporting(E_ALL);
+error_reporting(DEBUG_MODE ? E_ALL : 0);
 date_default_timezone_set(ini_get('date.timezone') ? ini_get('date.timezone') : 'America/Montreal');
 set_time_limit(0);
 require_once("fonctions/main.php");
