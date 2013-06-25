@@ -60,6 +60,7 @@ TODOs list
 - [x] Add more details about APIs methods in README.md file (client side)
 - [x] Set PHP errors reporting to E_ALL only if -debug options is set
 - [x] Add a raw transport layer (raw_send()) for people who wants full control over optimisation
+- [x] Add possibility to create custom admin commands
 - [/] Clean the core PHP code
 - [ ] Create a realtime website demo
 - [ ] Create a simple game demo

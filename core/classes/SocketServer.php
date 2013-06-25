@@ -12,6 +12,8 @@ class SocketServer
 	private $master_socket;
 	private $is_running;
 	private $reboot_on_shutdown;
+
+	private $cmds_requiring_admin_privileges = array("kick", "shutdown", "reboot", "sleep", "clients_count", "clients_list", "last_error", "options");
 	
 	// PUBLIC
 	//==========================================================
@@ -21,14 +23,6 @@ class SocketServer
 		$this->port = $port;
 		$this->init();
 		$this->init_socket();
-	}
-	
-	public function init_socket()
-	{
-		$this->master_socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-		socket_set_option($this->master_socket, SOL_SOCKET, SO_REUSEADDR, 1);
-		socket_bind($this->master_socket, $this->address, $this->port) or die("This port is already used.\n");
-		socket_listen($this->master_socket, $this->max_clients);
 	}
 	
 	public function run()
@@ -124,11 +118,35 @@ class SocketServer
 	{
 		$this->max_clients = $nb;
 	}
+
+	public function register_admin_command($cmd)
+	{
+		if(is_array($cmd))
+		{
+			foreach($cmd as $k => $v)
+			{
+				$this->register_admin_command($v);
+			}
+		}
+		else
+		{
+			array_push($this->cmds_requiring_admin_privileges, $cmd);
+		}
+	}
 	
 	// PROTECTED
 	//==========================================================
 	protected function init()
 	{
+		
+	}
+
+	protected function init_socket()
+	{
+		$this->master_socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		socket_set_option($this->master_socket, SOL_SOCKET, SO_REUSEADDR, 1);
+		socket_bind($this->master_socket, $this->address, $this->port) or die("This port is already used.\n");
+		socket_listen($this->master_socket, $this->max_clients);
 	}
 
 	protected function list_clients($prop = array(), $clients = array())
@@ -401,10 +419,8 @@ class SocketServer
 		
 		else if(isset($json->sys))
 		{
-			$requiring_admin_access = array("login", "logout");
-			$requiring_admin_privileges = array("kick", "shutdown", "reboot", "sleep", "clients_count", "clients_list", "last_error", "options");
-			$access_required = in_array($json->sys, $requiring_admin_access);
-			$privileges_required = in_array($json->sys, $requiring_admin_privileges);
+			$access_required = in_array($json->sys, array("login", "logout"));
+			$privileges_required = in_array($json->sys, $this->cmds_requiring_admin_privileges);
 
 			if($access_required && !REMOTE_ADMIN_ACCESS)
 			{
@@ -424,6 +440,15 @@ class SocketServer
 			
 			switch($json->sys)
 			{
+				// ----------------------- public commands
+				case "exit":
+					$this->disconnect($client);
+				break;
+				case "ping":
+					$this->sys_send($client, "ping", microtime(true) * 1000);
+				break;
+
+				// ----------------------- admin commands
 				case "login":
 					if($client->is_admin())
 					{
@@ -506,12 +531,8 @@ class SocketServer
 				case "options":
 					$this->sys_send($client, "alert", SCRIPT_OPTIONS);
 				break;
-				case "exit":
-					$this->disconnect($client);
-				break;
-				case "ping":
-					$this->sys_send($client, "ping", microtime(true) * 1000);
-				break;
+
+				// ----------------------- custom commands
 				default:
 					$this->exec_method("sys_handle_" . $json->sys, array($client, $json->content));
 				break;
