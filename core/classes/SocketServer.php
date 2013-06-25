@@ -9,11 +9,12 @@ class SocketServer
 	private $config = array();
 	private $clients = array();
 	private $events_listeners = array();
+	private $ping_requests_queue = array();
 	private $master_socket;
 	private $is_running;
 	private $reboot_on_shutdown;
 
-	private $cmds_requiring_admin_privileges = array("kick", "shutdown", "reboot", "sleep", "clients_count", "clients_list", "last_error", "options");
+	private $cmds_requiring_admin_privileges = array("kick", "shutdown", "reboot", "sleep", "clients_count", "clients_list", "ping_client", "last_error", "options");
 	
 	// PUBLIC
 	//==========================================================
@@ -138,7 +139,7 @@ class SocketServer
 	//==========================================================
 	protected function init()
 	{
-		
+
 	}
 
 	protected function init_socket()
@@ -444,8 +445,25 @@ class SocketServer
 				case "exit":
 					$this->disconnect($client);
 				break;
-				case "ping":
-					$this->sys_send($client, "ping", microtime(true) * 1000);
+				case "ping_request":
+					$this->sys_send($client, "ping_response");
+				break;
+				case "ping_response":
+					if(isset($this->ping_requests_queue[$client->id]) && $json->content)
+					{
+						$ping = round((microtime(true) - $json->content) * 1000);
+
+						foreach($this->ping_requests_queue[$client->id] as $k)
+						{
+							$asker = $this->get_client_by_id($k);
+							if($asker)
+							{
+								$this->sys_send($asker, "alert", "Client #" . $client->id . " ping is " . $ping . " milliseconds.");
+							}
+						}
+
+						unset($this->ping_requests_queue[$client->id]);
+					}
 				break;
 
 				// ----------------------- admin commands
@@ -520,6 +538,18 @@ class SocketServer
 						$output .= "\n[" . $k . "] = " . $v->get_profile();
 					}
 					$this->sys_send($client, "alert", $output);
+				break;
+				case "ping_client":
+					$pinged = $this->get_client_by_id($json->content);
+					if($pinged)
+					{
+						if(!isset($this->ping_requests_queue[$pinged->id]))
+						{
+							$this->ping_requests_queue[$pinged->id] = array();
+							$this->sys_send($pinged, "ping_request", microtime(true));
+						}
+						array_push($this->ping_requests_queue[$pinged->id], $client->id);
+					}
 				break;
 				case "last_error":
 					ob_start();

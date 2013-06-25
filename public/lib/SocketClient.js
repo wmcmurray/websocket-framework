@@ -81,7 +81,8 @@ function SocketClient(address, port)
 						case "set_cookie": self.clientID=data.content; self.set_cookie(self.cookie_name,data.content,30); break;
 						case "alert": self.sys_alert(data.content); break;
 						case "reboot": setTimeout(function(){self.open(self.last_opening_vars);},3000); break;
-						case "ping": if(self.ping_start){self.fire_event("ping", (new Date().getTime()-self.ping_start)); self.ping_start=null;} break;
+						case "ping_response": if(self.ping_start){self.fire_event("ping", (new Date().getTime()-self.ping_start)); self.ping_start=null;} break;
+						case "ping_request": self.sys_send("ping_response", data.content); break;
 					}
 				}
 
@@ -149,7 +150,7 @@ function SocketClient(address, port)
 		if(!this.ping_start)
 		{
 			this.ping_start = new Date().getTime();
-			this.sys_send("ping");
+			this.sys_send("ping_request");
 		}
 	}
 

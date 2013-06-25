@@ -62,6 +62,9 @@
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('clients_list');">Get clients list</a>
                         </li>
                         <li>
+                            <a href="javascript:void(0);" onclick="client.socket.sys_send('ping_client',prompt('Enter client ID (exemple: 51c4ec7d1bc6f)'));">Get client ping</a>
+                        </li>
+                        <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('kick',prompt('Enter client ID (exemple: 51c4ec7d1bc6f)'));">Kick a client</a>
                         </li>
 
