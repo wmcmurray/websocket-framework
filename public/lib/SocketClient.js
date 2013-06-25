@@ -58,12 +58,22 @@ function SocketClient(address, port)
 			//MESSAGE
 			this.socket.onmessage = function(e)
 			{
-				var data=JSON.parse(e.data);
+				try
+				{
+				   var data = JSON.parse(e.data);
+				}
+				catch(err)
+				{
+					var data = e.data;
+				}
 				
+				// normal data type
 				if(data.action)
 				{
 					self.fire_event("message", data);
 				}
+
+				// system data type
 				else if(data.sys)
 				{
 					switch(data.sys)
@@ -73,6 +83,12 @@ function SocketClient(address, port)
 						case "reboot": setTimeout(function(){self.open(self.last_opening_vars);},3000); break;
 						case "ping": self.fire_event("ping", (new Date().getTime()-self.ping_start)); self.ping_start=null; break;
 					}
+				}
+
+				// raw data type
+				else
+				{
+					self.fire_event("message", data);
 				}
 			}
 			
@@ -111,26 +127,21 @@ function SocketClient(address, port)
 		}
 	}
 	
-	this.send = function(action,content)
+	this.send = function(action, content)
 	{
-		if(this.socket.readyState==1)
-		{
-			var o={action:action,content:(content?content:"")};
-			this.socket.send(JSON.stringify(o));
-			return true;
-		}
-		return false;
+		var o = {action: action, content: (content ? content : "")};
+		return this.write(JSON.stringify(o));
+	}
+
+	this.raw_send = function(content)
+	{
+		return this.write(content);
 	}
 	
-	this.sys_send = function(command,content)
+	this.sys_send = function(command, content)
 	{
-		if(this.socket.readyState==1)
-		{
-			var o={sys:command,content:(content?content:"")};
-			this.socket.send(JSON.stringify(o));
-			return true;
-		}
-		return false;
+		var o = {sys: command, content: (content ? content : "")};
+		return this.socket.send(JSON.stringify(o));
 	}
 	
 	this.ping = function()
@@ -159,6 +170,16 @@ function SocketClient(address, port)
 				this.events_listeners[evt][i](args?args:"");
 			}
 		}
+	}
+
+	this.write = function(data)
+	{
+		if(this.socket.readyState==1)
+		{
+			this.socket.send(data);
+			return true;
+		}
+		return false;
 	}
 
 	this.sys_alert = function(t)

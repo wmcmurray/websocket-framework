@@ -190,8 +190,15 @@ class SocketServer
 		return $b;
 	}
 	
-	protected function send($client, $action = "", $content = "")
+	protected function send($client, $action = "", $content = NULL)
 	{
+		// dispatch raw data normally
+		if($action && is_null($content))
+		{
+			$content = $action;
+			$action = NULL;
+		}
+
 		if(is_array($client))
 		{
 			foreach($client as $a)
@@ -201,29 +208,26 @@ class SocketServer
 		}
 		else
 		{
-			$this->write($client->socket, array(
-				"action" => $action,
-				"content" => $content
-			));
+			$this->write($client->socket, !is_null($action) ? array("action" => $action, "content" => $content) : $content);
 		}
 	}
 
-	protected function send_to_all($action = "", $content = "")
+	protected function send_to_all($action = "", $content = NULL)
 	{
 		$this->send($this->get_clients(), $action, $content);
 	}
 
-	protected function send_to_others($client, $action = "", $content = "")
+	protected function send_to_others($client, $action = "", $content = NULL)
 	{
 		$this->send($this->get_clients($client), $action, $content);
 	}
 
-	protected function send_to_others_in_group($client, $action = "", $content = "")
+	protected function send_to_others_in_group($client, $action = "", $content = NULL)
 	{
 		$this->send($this->get_clients_from_group($client->get_group(), $client), $action, $content);
 	}
 
-	protected function send_to_group($group, $action = "", $content = "")
+	protected function send_to_group($group, $action = "", $content = NULL)
 	{
 		if(is_array($group))
 		{
@@ -364,23 +368,29 @@ class SocketServer
 			return false;
 		}
 		$json = json_decode($data);
-		if(!$json)
+		if(!$json || is_int($json))
 		{
-			$data_bytes = "";
-			for($i = 0; $i < strlen($data); $i++)
+			$len = strlen($data);
+
+			// detect the connection close bytes
+			if($len == 2)
 			{
-			   $data_bytes += ord($data[$i]);
+				$data_bytes = "";
+				for($i = 0; $i < $len; $i++)
+				{
+				   $data_bytes += ord($data[$i]);
+				}
+				
+				if($data_bytes == 236)
+				{
+					$this->disconnect($client);
+					return true;
+				}
 			}
 			
-			if($data_bytes == 236)
-			{
-				$this->disconnect($client);
-			}
-			else
-			{
-				debug("Unrecognized data : " . $data_bytes);
-			}
-			return false;
+			// if not the closing bytes, handle data as raw data
+			$this->exec_method("raw_handle", array($client, $data));
+			return true;
 		}
 		
 		if(isset($json->action))
@@ -539,7 +549,11 @@ class SocketServer
 	
 	private function encode($text)
 	{
-		$text = json_encode($text);
+		if(is_array($text))
+		{
+			$text = json_encode($text);
+		}
+		
 		//$text = base64_encode($text);
 		$b1 = 0x80 | (0x1 & 0x0f); // 0x1 text frame (FIN + opcode)
 		$length = strlen($text);

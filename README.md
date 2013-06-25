@@ -58,13 +58,13 @@ TODOs list
 - [x] Create an Hello World demo
 - [x] Add possibility to set different output modes in each server instances instead of common config file
 - [x] Add more details about APIs methods in README.md file (client side)
+- [x] Set PHP errors reporting to E_ALL only if -debug options is set
+- [x] Add a raw transport layer (raw_send()) for people who wants full control over optimisation
 - [/] Clean the core PHP code
 - [ ] Create a realtime website demo
 - [ ] Create a simple game demo
-- [ ] Add a raw transport layer (raw_send()) for people who wants full optimisation
 - [ ] Add methods to save and retrieve data in text files
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
-- [x] Set PHP errors reporting to E_ALL only if -debug options is set
 - [ ] Find a way to redefine the server class when server is rebooted remotely by an admin
 - [ ] Add a way to ban a client definitively with the Admin API
 
