@@ -3,7 +3,7 @@
 	margin-top: 20px;
 }
 
-#helloworld-console
+#demo-console
 {
 	border-radius: 5px;
 	width: 95%;
@@ -17,7 +17,7 @@
 	font-family: Monaco,Menlo,Consolas,"Courier New",monospace;
 }
 
-#helloworld-console .entry
+#demo-console .entry
 {
 	white-space: pre-line;
 }

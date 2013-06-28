@@ -68,10 +68,10 @@ function HelloWorld(address, port)
 		.animate({opacity: 1, left: "0px"}, 150);
 
 
-		jQuery("#helloworld-console")
+		jQuery("#demo-console")
 		.append(div)
 		.stop()
-		.animate({"scrollTop" : jQuery("#helloworld-console")[0].scrollHeight}, 500);
+		.animate({"scrollTop" : jQuery("#demo-console")[0].scrollHeight}, 500);
 	}
 	
 	// initialization

@@ -27,23 +27,23 @@ function Chat(address, port)
 			// ask the server for the list of last saved messages
 			setTimeout(function(){ self.socket.send("list_messages"); }, 200);
 
-			self.socket.sys_alert("Socket opened.");
+			self.socket.alert("Socket opened.");
 		});
 		
 		// eventListener executed when receiving a message from server
 		this.socket.on("message", this.handle_messages);
 
 		// eventListener executed when an error occurs
-		this.socket.on("error", function(e){ self.socket.sys_alert("An error occured."); });
+		this.socket.on("error", function(e){ self.socket.alert("An error occured."); });
 
 		// eventListener executed when socket is closed
-		this.socket.on("close", function(e){ self.socket.sys_alert("Socket closed with code : " + e.code); });
+		this.socket.on("close", function(e){ self.socket.alert("Socket closed with code : " + e.code); });
 
 		// eventListener executed when server send alerts
 		this.socket.on("alert", function(t){ document.getElementById("console").innerHTML = t; });
 
 		// opening of the socket
-		self.socket.sys_alert("Trying to open the socket...");
+		self.socket.alert("Trying to open the socket...");
 		this.socket.open("chatroom="+this.chatroom+"&username="+this.me.prefs.username);
 	}
 

@@ -52,19 +52,14 @@ Demos included
 
 TODOs list
 -------------------------
-- [x] Clean this README.md file
-- [x] Clean demos code and integrate twitter bootstrap
 - [x] Create an Admin Control Panel demo
 - [x] Create an Hello World demo
-- [x] Add possibility to set different output modes in each server instances instead of common config file
-- [x] Add more details about APIs methods in README.md file (client side)
-- [x] Set PHP errors reporting to E_ALL only if -debug options is set
 - [x] Add a raw transport layer (raw_send()) for people who wants full control over optimisation
 - [x] Add possibility to create custom admin commands
 - [/] Clean the core PHP code
 - [ ] Create a realtime website demo
 - [ ] Create a simple game demo
-- [ ] Add methods to save and retrieve data in text files
+- [ ] Add an interface to save and retrieve data in text files
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
 - [ ] Find a way to redefine the server class when server is rebooted remotely by an admin
 - [ ] Add a way to ban a client definitively with the Admin API

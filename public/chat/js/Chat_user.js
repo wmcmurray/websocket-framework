@@ -4,29 +4,29 @@
 
 function Chat_user(prefs_cookie_name)
 {
-	var self=this;
+	var self = this;
 	
 	this.init = function()
 	{
-		this.prefs={};
-		this.prefs.username="Anonymous";
+		this.prefs = {};
+		this.prefs.username = "Anonymous";
 		if(prefs_cookie_name)
 		{
-			this.cookie=prefs_cookie_name;
+			this.cookie = prefs_cookie_name;
 			this.get_prefs();
 		}
 	}
 	
 	this.get_prefs = function()
 	{
-		var cookie=getCookie(this.cookie);
+		var cookie = SocketClient.prototype.get_cookie(this.cookie);
 		if(cookie)
 		{
-			var p=cookie.split("&");
+			var p = cookie.split("&");
 			for(var i in p)
 			{
-				var p2=p[i].split("=");
-				this.prefs[p2[0]]=p2[1];
+				var p2 = p[i].split("=");
+				this.prefs[p2[0]] = p2[1];
 			}
 		}
 	}
@@ -35,12 +35,12 @@ function Chat_user(prefs_cookie_name)
 	{
 		if(this.cookie)
 		{
-			var str="";
+			var str = "";
 			for(var i in this.prefs)
 			{
-				str+=(str==""?"":"&")+i+"="+this.prefs[i];
+				str += (str == "" ? "" : "&") + i + "=" + this.prefs[i];
 			}
-			setCookie(this.cookie,str,30);
+			SocketClient.prototype.set_cookie(this.cookie, str, 30);
 		}
 	}
 	
