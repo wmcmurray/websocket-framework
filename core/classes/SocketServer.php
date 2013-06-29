@@ -78,19 +78,20 @@ class SocketServer
 				}
 			}
 		}
-		socket_close($this->master_socket);
+
 		output("SHUTDOWN.", true);
 		$this->exec_method("on_server_shutdown");
+		$this->sys_disconnect_all();
+		socket_close($this->master_socket);
 		
 		if($this->reboot_on_shutdown)
 		{
-			output("REBOOT...", true);
-			$r = new ReflectionClass(get_class($this));
-			$SocketServer_new_instance = $r->newInstanceArgs(array($this->address, $this->port));
-			$SocketServer_new_instance->set_config($this->get_config());
-			$SocketServer_new_instance->run();
+			// this tell the wrapper loop to restart this script
+			echo "\r\n-reboot_on_shutdown";
+
+			// an not-default PHP extension is required for this to work... which is not handly
+			//pcntl_exec(SERVER_PATH, $argv);
 		}
-		unset($this);
 	}
 	
 	public function get_config($name = "")
@@ -515,7 +516,6 @@ class SocketServer
 				case "reboot":
 					$this->sys_send_to_all("reboot");
 					$this->exec_method("on_server_reboot");
-					$this->sys_disconnect_all();
 					$this->reboot_on_shutdown = true;
 					$this->is_running = false;
 				break;

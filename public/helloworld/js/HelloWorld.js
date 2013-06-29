@@ -8,17 +8,6 @@ function HelloWorld(address, port)
 	
 	this.init = function()
 	{
-		this.init_socket();
-	}
-
-	this.init_socket = function()
-	{
-		// close current socket in already opened
-		if(this.socket)
-		{
-			this.socket.close();
-		}
-
 		// instanciate the SocketClient class
 		this.socket = new SocketClient(address, port);
 
@@ -41,8 +30,6 @@ function HelloWorld(address, port)
 		self.display_log("Trying to open the socket...");
 		this.socket.open();
 	}
-
-	
 
 	// this method handle all incoming data from the server
 	this.handle_messages = function(data)

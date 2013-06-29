@@ -61,6 +61,6 @@ TODOs list
 - [ ] Create a simple game demo
 - [ ] Add an interface to save and retrieve data in text files
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
-- [ ] Find a way to redefine the server class when server is rebooted remotely by an admin
+- [x] Find a way to redefine the server class when server is rebooted remotely by an admin
 - [ ] Add a way to ban a client definitively with the Admin API
 

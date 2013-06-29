@@ -1,9 +1,10 @@
 @echo off
 
-TITLE Admin Control Panel Server
+REM change window title
+TITLE Admin Control Panel - websocket server
 
-REM this set a cool color for command prompt
+REM change window background and color
 Color 0A
 
-REM this start the server
-php ../my_servers/admin.php -admin -verbose -debug -warn
+REM start the server
+php ../core/wrapper.php -server:admin -admin -verbose -debug -warn

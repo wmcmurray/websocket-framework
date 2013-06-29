@@ -15,6 +15,7 @@ function SocketClient(address, port)
     this.max_connections_attempts = 3;
     this.reconnection_delay = 5; //in seconds
     this.stay_closed = false; //true|false, défini si le chat tentera de se reconnecté après un event onclose
+    this.reconnect_timeout;
     this.socket;
 }
 
@@ -31,18 +32,23 @@ SocketClient.prototype.on = function (evt, fnc)
 
 SocketClient.prototype.open = function (get_vars)
 {
-    if(this.socket)
-    {
-        this.socket.close();
-    }
-    this.last_opening_vars = get_vars;
-
     if(window.WebSocket && this.connections_attempts < this.max_connections_attempts)
     {
+    	if(this.reconnect_timeout)
+		{
+			clearTimeout(this.reconnect_timeout);
+		}
+
+		if(this.socket_ready())
+		{
+			return false;
+		}
+
+    	this.debug("Connection attempt...");
         this.stay_closed = false;
         this.connections_attempts++;
-        this.debug("Connection attempt...");
-
+	    this.last_opening_vars = get_vars;
+        
         var cookie = this.get_cookie(this.cookie_name);
         if(cookie)
         {
@@ -65,13 +71,19 @@ SocketClient.prototype.open = function (get_vars)
     }
 }
 
-SocketClient.prototype.close = function ()
+SocketClient.prototype.close = function ( reconnectAfter )
 {
-    if(this.sys_send("exit"))
-    {
-        this.stay_closed = true;
-        setTimeout(this.proxy(this.socket.close, this), 2000);
-    }
+	if(this.socket_ready())
+	{
+		this.stay_closed = reconnectAfter ? false : true;
+
+	    // tell the server to close socket
+	    if(this.sys_send("exit"))
+	    {
+	    	// some time after close client socket
+	        setTimeout(this.proxy(function(){this.socket.close();}, this), 250);
+	    }
+	}
 }
 
 SocketClient.prototype.send = function (action, content)
@@ -83,7 +95,7 @@ SocketClient.prototype.send = function (action, content)
 SocketClient.prototype.sys_send = function (command, content)
 {
     var o = {sys: command, content: (content ? content : "")};
-    return this.socket.send(JSON.stringify(o));
+    return this.write(JSON.stringify(o));
 }
 
 SocketClient.prototype.raw_send = function (content)
@@ -93,7 +105,7 @@ SocketClient.prototype.raw_send = function (content)
 
 SocketClient.prototype.ping = function ()
 {
-    if(!this.ping_start)
+    if(!this.ping_start && this.socket_ready())
     {
         this.ping_start = new Date().getTime();
         this.sys_send("ping_request");
@@ -108,17 +120,17 @@ SocketClient.prototype.set_debug = function (bool)
 // PRIVATE
 //==========================================================
 
-// socket events handlers
+//ON OPEN
 // ---------------------------------------------
-
-//OPEN
 SocketClient.prototype.handle_onopen = function ()
 {
+	this.connections_attempts = 0;
     this.fire_event("open");
     this.debug("Socket opened.");
 }
 
-//MESSAGE
+//ON MESSAGE
+// ---------------------------------------------
 SocketClient.prototype.handle_onmessage = function (e)
 {
     try
@@ -149,7 +161,7 @@ SocketClient.prototype.handle_onmessage = function (e)
 	            this.alert(data.content);
 	        break;
 	        case "reboot":
-	            setTimeout(this.proxy(this.open, this, this.last_opening_vars), 3000);
+	        	this.socket.close();
 	        break;
 	        case "ping_response":
 	            if(this.ping_start)
@@ -171,16 +183,23 @@ SocketClient.prototype.handle_onmessage = function (e)
     }
 }
 
-//CLOSE
+//ON CLOSE
+// ---------------------------------------------
 SocketClient.prototype.handle_onclose = function (e)
 {
     this.fire_event("close", e);
     this.debug("Socket closed.");
-    if(!this.stay_closed)
+	
+    if(this.ping_start)
+    {
+    	this.ping_start = null;
+    }
+
+    if(this.stay_closed == false)
     {
         if(this.connections_attempts < this.max_connections_attempts)
         {
-            setTimeout(this.proxy(this.open, this, this.last_opening_vars), (this.reconnection_delay * 1000));
+        	this.set_reconnect_timeout((this.reconnection_delay * 1000));
             this.debug("Will try again in " + this.reconnection_delay + " seconds...");
         }
         else
@@ -190,7 +209,8 @@ SocketClient.prototype.handle_onclose = function (e)
     }
 }
 
-//ERROR
+//ON ERROR
+// ---------------------------------------------
 SocketClient.prototype.handle_onerror = function (e)
 {
     this.fire_event("error", e);
@@ -198,6 +218,22 @@ SocketClient.prototype.handle_onerror = function (e)
 }
 
 // ---------------------------------------------
+
+SocketClient.prototype.socket_ready = function ()
+{
+	return this.socket && this.socket.readyState == 1 ? true : false;
+}
+
+SocketClient.prototype.set_reconnect_timeout = function ( delay )
+{
+	if(this.reconnect_timeout)
+	{
+		clearTimeout(this.reconnect_timeout);
+	}
+
+	this.reconnect_timeout = setTimeout(this.proxy(this.open, this, this.last_opening_vars), delay);
+}
+
 
 SocketClient.prototype.fire_event = function (evt, args)
 {
@@ -212,7 +248,7 @@ SocketClient.prototype.fire_event = function (evt, args)
 
 SocketClient.prototype.write = function (data)
 {
-    if(this.socket.readyState == 1)
+    if(this.socket_ready())
     {
         this.socket.send(data);
         return true;

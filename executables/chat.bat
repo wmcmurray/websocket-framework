@@ -1,9 +1,10 @@
 @echo off
 
-TITLE Simple Chat Server
+REM change window title
+TITLE Simple Chat - websocket server
 
-REM this set a cool color for command prompt
+REM change window background and color
 Color 0A
 
-REM this start the server
-php ../my_servers/chat.php -verbose -debug -warn
+REM start the server
+php ../core/wrapper.php -server:chat -verbose -debug -warn
