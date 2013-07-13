@@ -1,4 +1,6 @@
 core/config.ini
+data/*
+!data/.gitignore
 
 TODO.txt
 public/mmouse

@@ -1,11 +1,11 @@
-Websocket Framework v0.0.1
+Websocket Framework v0.0.2
 ======================================
 
 <img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshot-server.gif" width="300" align="right" title="Server cmd prompt">
-This project provide a way to easily create websocket servers as well as clients.
+This project provide a way to easily create PHP websocket servers and JavaScript clients.
 You won't have to deal with socket listening, handshaking, data unmasking and such, it's all done by the framework.
 
-**All you'll have to do is : create what you have in mind !**
+**All you have to do is : create what you have in mind !**
 
 **Licence :** GNU General Public License, version 3.0 (GPLv3)
 
@@ -24,7 +24,8 @@ Features
 
 Ressources for developers
 -------------------------
-* [How to use](https://github.com/wmcmurray/websocket-framework/wiki/How-to-use)
+* [How to use : general](https://github.com/wmcmurray/websocket-framework/wiki/How-to-use)
+* [How to use : remote admin](https://github.com/wmcmurray/websocket-framework/wiki/Remote-admin)
 * [API reference : server](https://github.com/wmcmurray/websocket-framework/wiki/API-reference-:-server)
 * [API reference : client](https://github.com/wmcmurray/websocket-framework/wiki/API-reference-:-client)
 
@@ -59,7 +60,7 @@ TODOs list
 - [/] Clean the core PHP code
 - [ ] Create a realtime website demo
 - [ ] Create a simple game demo
-- [ ] Add an interface to save and retrieve data in text files
+- [x] Add an helper to save and retrieve data in text files
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
 - [x] Find a way to redefine the server class when server is rebooted remotely by an admin
 - [ ] Add a way to ban a client definitively with the Admin API

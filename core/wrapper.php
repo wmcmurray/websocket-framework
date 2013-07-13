@@ -1,9 +1,23 @@
 <?php
+echo "Initialisation of the server wrapper...\n";
 
 $options = "";
+$CONFIG = array();
+
+function get_config()
+{
+	global $CONFIG;
+	$CONFIG = @parse_ini_file("config.ini");
+
+	if(!$CONFIG)
+	{
+		$CONFIG = parse_ini_file("config.template.ini");
+	}
+}
+
 foreach($argv as $k => $v)
 {
-	// first is the script path
+	// first option is the script path
 	if($k == 0)
 	{
 		
@@ -20,24 +34,23 @@ foreach($argv as $k => $v)
 
 if(isset($server))
 {
-	$config = @parse_ini_file("config.ini");
+	get_config();
 
-	if(!$config)
+	if($CONFIG)
 	{
-		$config = parse_ini_file("config.template.ini");
-	}
-
-	if($config)
-	{
-		while(system($config["php_path"] . " ". $config["servers_path"] . $server . ".php " . $options) == "-reboot_on_shutdown")
+		while(system($CONFIG["php_path"] . " ". $CONFIG["servers_path"] . $server . ".php " . $options) == "-reboot_on_shutdown")
 		{
-
+			get_config();
 		}
 	}
 	else
 	{
-		echo "Configuration file missing !";
+		echo "Configuration file missing !\n";
 	}
+}
+else
+{
+	echo "ERROR: Server not specified.\nUse the -server:MY_SERVER_NAME_HERE option with the name of the server's php file.\n";
 }
 
 ?>

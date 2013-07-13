@@ -6,6 +6,7 @@ class SocketServer
 	private $server_name 	= "SERVER"; // default server name
 	private $admin_password = "root";	// default admin password
 	private $max_clients 	= 1000;		// default connected clients limit
+	private $version = "0.0.2";
 	private $config = array();
 	private $clients = array();
 	private $events_listeners = array();
@@ -28,6 +29,7 @@ class SocketServer
 	
 	public function run()
 	{
+		output("Websocket Framework v" . $this->version . " " . SCRIPT_OPTIONS, true);
 		output("========================================================", true);
 		output($this->server_name . " STARTED RUNNING ON " . $this->address . ":" . $this->port, true);
 		output("========================================================", true);
