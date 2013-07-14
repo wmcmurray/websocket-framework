@@ -1,7 +1,7 @@
 Websocket Framework v0.0.2
 ======================================
 
-<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshot-server.gif" width="300" align="right" title="Server cmd prompt">
+<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/server.gif" width="300" align="right" title="Server cmd prompt">
 This project provide a way to easily create PHP websocket servers and JavaScript clients.
 You won't have to deal with socket listening, handshaking, data unmasking and such, it's all done by the framework.
 
@@ -40,13 +40,13 @@ Demos included
 	</tr>
 	<tr>
 		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/public/helloworld/images/screenshot.gif" width="210">
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-helloworld.gif" width="210">
 		</td>
 		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/public/admin/images/screenshot.gif" width="210">
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-admin.gif" width="210">
 		</td>
 		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/public/chat/images/screenshot.gif" width="210">
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-chat.gif" width="210">
 		</td>
 	</tr>
 </table>
@@ -57,11 +57,9 @@ TODOs list
 - [x] Create an Hello World demo
 - [x] Add a raw transport layer (raw_send()) for people who wants full control over optimisation
 - [x] Add possibility to create custom admin commands
-- [/] Clean the core PHP code
-- [ ] Create a realtime website demo
-- [ ] Create a simple game demo
 - [x] Add an helper to save and retrieve data in text files
+- [ ] Create a simple game demo
+- [ ] Create a realtime website demo
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
-- [x] Find a way to redefine the server class when server is rebooted remotely by an admin
 - [ ] Add a way to ban a client definitively with the Admin API
 
