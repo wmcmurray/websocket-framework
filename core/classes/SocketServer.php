@@ -390,7 +390,166 @@ class SocketServer
 			return false;
 		}
 		$json = json_decode($data);
-		if(!$json || is_int($json))
+
+		if($json && !is_int($json) && count((array)$json) == 2 && isset($json->content))
+		{
+			if(isset($json->action))
+			{
+				debug('Handling action "' . $json->action . '"...');
+				$this->exec_method("handle_" . $json->action, array($client, $json->content));
+			}
+			
+			else if(isset($json->sys))
+			{
+				$access_required = in_array($json->sys, array("login", "logout"));
+				$privileges_required = in_array($json->sys, $this->cmds_requiring_admin_privileges);
+
+				if($access_required && !REMOTE_ADMIN_ACCESS)
+				{
+					debug("Remote admin access isn't enabled. (-admin option)");
+					return false;
+				}
+
+				if(($privileges_required && $this->do_if_admin($client)) || !$privileges_required)
+				{
+					debug('Handling system command "' . $json->sys . '"...');
+				}
+				else
+				{
+					warning('client #' . $client->id . ' tried to execute "' . $json->sys . '".');
+					return false;
+				}
+				
+				switch($json->sys)
+				{
+					// ----------------------- public commands
+					case "exit":
+						$this->disconnect($client);
+					break;
+					case "ping_request":
+						$this->sys_send($client, "ping_response");
+					break;
+					case "ping_response":
+						if(isset($this->ping_requests_queue[$client->id]) && $json->content)
+						{
+							$ping = round((microtime(true) - $json->content) * 1000);
+
+							foreach($this->ping_requests_queue[$client->id] as $k)
+							{
+								$asker = $this->get_client_by_id($k);
+								if($asker)
+								{
+									$this->sys_send($asker, "alert", "Client #" . $client->id . " ping is " . $ping . " milliseconds.");
+								}
+							}
+
+							unset($this->ping_requests_queue[$client->id]);
+						}
+					break;
+
+					// ----------------------- admin commands
+					case "login":
+						if($client->is_admin())
+						{
+							$this->sys_send($client, "alert", "You are already admin.");
+						}
+						else if($this->admin_password === $json->content)
+						{
+							$client->grant_admin();
+							$this->sys_send($client, "alert", "You are now admin.");
+						}
+						else
+						{
+							warning('client #' . $client->id . ' entered a wrong password in admin login.');
+							$this->sys_send($client, "alert", "Access denied.");
+						}
+					break;
+					case "logout":
+						if($client->is_admin())
+						{
+							$client->revoke_admin();
+							$this->sys_send($client, "alert", "Your admin privilege have been revoked.");
+						}
+						else
+						{
+							$this->sys_send($client, "alert", "You can't log out if you are not logged in.");
+						}
+					break;
+					case "kick":
+						$c = $this->get_client_by_id($json->content);
+						if($c)
+						{
+							if($client->id !== $json->content)
+							{
+								$this->exec_method("on_client_kick", $c);
+								$this->disconnect($c);
+							}
+							else
+							{
+								$this->sys_send($client, "alert", "Kicking yourself is unfortunately impossible. (and stupid)");
+							}
+						}
+					break;
+					case "shutdown":
+						$this->is_running = false;
+					break;
+					case "reboot":
+						$this->sys_send_to_all("reboot");
+						$this->exec_method("on_server_reboot");
+						$this->reboot_on_shutdown = true;
+						$this->is_running = false;
+					break;
+					case "sleep":
+						$time = intval($json->content);
+						if($time > 0)
+						{
+							output("Zzzzzz for " . $time . " seconds...");
+							sleep($time);
+							output("Zzzzzz is over !");
+						}
+					break;
+					case "clients_count":
+						$this->sys_send($client, "alert", $this->get_clients_count() . " clients connected.");
+					break;
+					case "clients_list":
+						$output = "Clients list :";
+						foreach($this->clients as $k => $v)
+						{
+							$output .= "\n[" . $k . "] = " . $v->get_profile();
+						}
+						$this->sys_send($client, "alert", $output);
+					break;
+					case "ping_client":
+						$pinged = $this->get_client_by_id($json->content);
+						if($pinged)
+						{
+							if(!isset($this->ping_requests_queue[$pinged->id]))
+							{
+								$this->ping_requests_queue[$pinged->id] = array();
+								$this->sys_send($pinged, "ping_request", microtime(true));
+							}
+							array_push($this->ping_requests_queue[$pinged->id], $client->id);
+						}
+					break;
+					case "last_error":
+						ob_start();
+						print_r(error_get_last());
+						$err = ob_get_clean();
+
+						$this->sys_send($client, "alert", $err != "" ? $err : "No last error.");
+					break;
+					case "options":
+						$this->sys_send($client, "alert", SCRIPT_OPTIONS);
+					break;
+
+					// ----------------------- custom commands
+					default:
+						$this->exec_method("sys_handle_" . $json->sys, array($client, $json->content));
+					break;
+				}
+			}
+		}
+		else
 		{
 			$len = strlen($data);
 
@@ -413,162 +572,6 @@ class SocketServer
 			// if not the closing bytes, handle data as raw data
 			$this->exec_method("raw_handle", array($client, $data));
 			return true;
-		}
-		
-		if(isset($json->action))
-		{
-			debug('Handling action "' . $json->action . '"...');
-			$this->exec_method("handle_" . $json->action, array($client, $json->content));
-		}
-		
-		else if(isset($json->sys))
-		{
-			$access_required = in_array($json->sys, array("login", "logout"));
-			$privileges_required = in_array($json->sys, $this->cmds_requiring_admin_privileges);
-
-			if($access_required && !REMOTE_ADMIN_ACCESS)
-			{
-				debug("Remote admin access isn't enabled. (-admin option)");
-				return false;
-			}
-
-			if(($privileges_required && $this->do_if_admin($client)) || !$privileges_required)
-			{
-				debug('Handling system command "' . $json->sys . '"...');
-			}
-			else
-			{
-				warning('client #' . $client->id . ' tried to execute "' . $json->sys . '".');
-				return false;
-			}
-			
-			switch($json->sys)
-			{
-				// ----------------------- public commands
-				case "exit":
-					$this->disconnect($client);
-				break;
-				case "ping_request":
-					$this->sys_send($client, "ping_response");
-				break;
-				case "ping_response":
-					if(isset($this->ping_requests_queue[$client->id]) && $json->content)
-					{
-						$ping = round((microtime(true) - $json->content) * 1000);
-
-						foreach($this->ping_requests_queue[$client->id] as $k)
-						{
-							$asker = $this->get_client_by_id($k);
-							if($asker)
-							{
-								$this->sys_send($asker, "alert", "Client #" . $client->id . " ping is " . $ping . " milliseconds.");
-							}
-						}
-
-						unset($this->ping_requests_queue[$client->id]);
-					}
-				break;
-
-				// ----------------------- admin commands
-				case "login":
-					if($client->is_admin())
-					{
-						$this->sys_send($client, "alert", "You are already admin.");
-					}
-					else if($this->admin_password === $json->content)
-					{
-						$client->grant_admin();
-						$this->sys_send($client, "alert", "You are now admin.");
-					}
-					else
-					{
-						warning('client #' . $client->id . ' entered a wrong password in admin login.');
-						$this->sys_send($client, "alert", "Access denied.");
-					}
-				break;
-				case "logout":
-					if($client->is_admin())
-					{
-						$client->revoke_admin();
-						$this->sys_send($client, "alert", "Your admin privilege have been revoked.");
-					}
-					else
-					{
-						$this->sys_send($client, "alert", "You can't log out if you are not logged in.");
-					}
-				break;
-				case "kick":
-					$c = $this->get_client_by_id($json->content);
-					if($c)
-					{
-						if($client->id !== $json->content)
-						{
-							$this->exec_method("on_client_kick", $c);
-							$this->disconnect($c);
-						}
-						else
-						{
-							$this->sys_send($client, "alert", "Kicking yourself is unfortunately impossible. (and stupid)");
-						}
-					}
-				break;
-				case "shutdown":
-					$this->is_running = false;
-				break;
-				case "reboot":
-					$this->sys_send_to_all("reboot");
-					$this->exec_method("on_server_reboot");
-					$this->reboot_on_shutdown = true;
-					$this->is_running = false;
-				break;
-				case "sleep":
-					$time = intval($json->content);
-					if($time > 0)
-					{
-						output("Zzzzzz for " . $time . " seconds...");
-						sleep($time);
-						output("Zzzzzz is over !");
-					}
-				break;
-				case "clients_count":
-					$this->sys_send($client, "alert", $this->get_clients_count() . " clients connected.");
-				break;
-				case "clients_list":
-					$output = "Clients list :";
-					foreach($this->clients as $k => $v)
-					{
-						$output .= "\n[" . $k . "] = " . $v->get_profile();
-					}
-					$this->sys_send($client, "alert", $output);
-				break;
-				case "ping_client":
-					$pinged = $this->get_client_by_id($json->content);
-					if($pinged)
-					{
-						if(!isset($this->ping_requests_queue[$pinged->id]))
-						{
-							$this->ping_requests_queue[$pinged->id] = array();
-							$this->sys_send($pinged, "ping_request", microtime(true));
-						}
-						array_push($this->ping_requests_queue[$pinged->id], $client->id);
-					}
-				break;
-				case "last_error":
-					ob_start();
-					print_r(error_get_last());
-					$err = ob_get_clean();
-
-					$this->sys_send($client, "alert", $err != "" ? $err : "No last error.");
-				break;
-				case "options":
-					$this->sys_send($client, "alert", SCRIPT_OPTIONS);
-				break;
-
-				// ----------------------- custom commands
-				default:
-					$this->exec_method("sys_handle_" . $json->sys, array($client, $json->content));
-				break;
-			}
 		}
 	}
 	
