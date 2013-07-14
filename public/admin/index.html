@@ -46,10 +46,16 @@
             <!-- Left column -->
             <div class="span3">
 
-                <div class="login-buttons">
+                <div class="cmd-buttons">
                     <input type="button" class="btn input-block-level btn-inverse" onclick="client.socket.sys_send('login', prompt('Enter admin password :', 'admin'));" value="login">
 
                     <input type="button" class="btn input-block-level btn-inverse" onclick="client.socket.sys_send('logout');" value="Logout">
+                    
+                    <input type="button" class="btn input-block-level" onclick="client.socket.sys_send('sleep',prompt('How much time ? (in seconds)'));" value="Sleep server">
+
+                    <input type="button" class="btn input-block-level btn-warning" onclick="if(confirm('Do you really want to REBOOT the server ?')){client.socket.sys_send('reboot');}" value="Reboot server">
+
+                    <input type="button" class="btn input-block-level btn-danger" onclick="if(confirm('Do you really want to SHUTDOWN the server ?')){client.socket.sys_send('shutdown');}" value="Shutdown server">
                 </div>
 
                 <div class="well sidebar-nav">
@@ -72,17 +78,6 @@
                         <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('options');">Get options</a>
                         </li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="client.socket.sys_send('sleep',prompt('How much time ? (in seconds)'));">Sleep server</a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="if(confirm('Do you really want to REBOOT the server ?')){client.socket.sys_send('reboot');}">Reboot server</a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="if(confirm('Do you really want to SHUTDOWN the server ?')){client.socket.sys_send('shutdown');}">Shutdown server</a>
-                        </li>
-
-                        <li class="nav-header">Errors management</li>
                         <li>
                             <a href="javascript:void(0);" onclick="client.socket.sys_send('last_error');">Get last error</a>
                         </li>
