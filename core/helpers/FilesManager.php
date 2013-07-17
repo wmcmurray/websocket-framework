@@ -32,7 +32,7 @@ class FilesManager
 	 */
 	public function set_base_dir($dir)
 	{
-		$this->base_dir = $dir;
+		$this->base_dir = trim($dir, "/") . "/";
 	}
 
 	/**
@@ -40,7 +40,7 @@ class FilesManager
 	 *
 	 * @return bool
 	 */
-	public function path_exists($dir)
+	public function file_exists($dir)
 	{
 		return file_exists($this->get_real_path($dir)) ? true : false;
 	}

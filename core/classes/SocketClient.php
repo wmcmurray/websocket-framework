@@ -19,14 +19,28 @@ class SocketClient
 		}
 	}
 	
-	public function set($prop, $value)
-	{
-		$this->props[$prop] = $value;
-	}
-	
-	public function get($prop)
+	public function set($prop = "", $value = "")
 	{
 		if(is_array($prop))
+		{
+			foreach($prop as $k => $v)
+			{
+				$this->props[$k] = $v;
+			}
+		}
+		else
+		{
+			$this->props[$prop] = $value;
+		}
+	}
+	
+	public function get($prop = null)
+	{
+		if(is_null($prop))
+		{
+			return $this->props;
+		}
+		else if(is_array($prop))
 		{
 			$a = array();
 			foreach($prop as $k => $v)

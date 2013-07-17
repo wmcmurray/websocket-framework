@@ -1,16 +1,18 @@
 ﻿<?php
 
-$SocketServer_new_instance;
 class SocketServer
 {
 	private $server_name 	= "SERVER"; // default server name
 	private $admin_password = "root";	// default admin password
 	private $max_clients 	= 1000;		// default connected clients limit
-	private $version = "0.0.2";
+	private $version 		= "0.0.2";	// server version
+	private $socket_select_timeout = 1;
+	private $tick_interval = 1;
 	private $config = array();
 	private $clients = array();
 	private $events_listeners = array();
 	private $ping_requests_queue = array();
+	private $last_loop_time;
 	private $master_socket;
 	private $is_running;
 	private $reboot_on_shutdown;
@@ -35,13 +37,16 @@ class SocketServer
 		output("========================================================", true);
 		
 		$this->is_running = true;
+		$this->last_tick_time = microtime(true);
+		$this->tick_counter = 0;
+
 		while($this->is_running)
 		{
 			$changed_sockets = $this->get_all_sockets();
 			$write  = NULL;
 			$except = NULL;
-			@socket_select($changed_sockets, $write, $except, 1);
-			
+			@socket_select($changed_sockets, $write, $except, $this->socket_select_timeout);
+
 			foreach($changed_sockets as $socket)
 			{
 				if($socket == $this->master_socket)
@@ -79,6 +84,17 @@ class SocketServer
 					}
 				}
 			}
+
+			if($this->tick_interval > 0)
+			{
+				$timebetween = microtime(true) - $this->last_tick_time;
+
+				if($timebetween >= $this->tick_interval)
+				{
+					$this->exec_method("on_server_tick", array(++$this->tick_counter));
+					$this->last_tick_time = microtime(true) - ($timebetween - $this->tick_interval);
+				}
+			}
 		}
 
 		output("SHUTDOWN.", true);
@@ -88,11 +104,8 @@ class SocketServer
 		
 		if($this->reboot_on_shutdown)
 		{
-			// this tell the wrapper loop to restart this script
+			// this line tell the server wrapper loop to restart this script
 			echo "\r\n-reboot_on_shutdown";
-
-			// an not-default PHP extension is required for this to work... which is not handly
-			//pcntl_exec(SERVER_PATH, $argv);
 		}
 	}
 	
@@ -121,6 +134,16 @@ class SocketServer
 	public function set_max_clients($nb)
 	{
 		$this->max_clients = $nb;
+	}
+
+	public function set_socket_select_timeout($nb)
+	{
+		$this->socket_select_timeout = $nb;
+	}
+	
+	public function set_tick_interval($nb)
+	{
+		$this->tick_interval = $nb;
 	}
 
 	public function register_admin_command($cmd)
@@ -155,6 +178,10 @@ class SocketServer
 
 	protected function list_clients($prop = array(), $clients = array())
 	{
+		if(!is_array($prop))
+		{
+			$prop = array($prop);
+		}
 		$a = $clients ? $clients : $this->clients;
 		$b = array();
 		foreach($a as $k => $v)
@@ -266,11 +293,11 @@ class SocketServer
 	
 	protected function disconnect($client)
 	{
+		$this->exec_method("on_client_disconnect", array($client));
 		output("disconnected client #" . $client->id);
 		@socket_shutdown($client->socket, 2);
 		@socket_close($client->socket);
 		$this->remove_client($client);
-		$this->exec_method("on_client_disconnect", array($client));
 	}
 	
 	// PRIVATE

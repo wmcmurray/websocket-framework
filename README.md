@@ -58,8 +58,9 @@ TODOs list
 - [x] Add a raw transport layer (raw_send()) for people who wants full control over optimisation
 - [x] Add possibility to create custom admin commands
 - [x] Add an helper to save and retrieve data in text files
-- [ ] Create a simple game demo
+- [/] Create a simple game demo
 - [ ] Create a realtime website demo
+- [ ] Create an online radio
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
 - [ ] Add a way to ban a client definitively with the Admin API
 

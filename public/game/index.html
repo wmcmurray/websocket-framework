@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World - Websocket Framework</title>
+    <title>Simple Game - Websocket Framework</title>
 
     <!-- CSS stylesheets -->
     <link href="../lib/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
@@ -29,10 +29,10 @@
                 <div class="nav-collapse collapse">
                     <p class="navbar-text pull-right" id="console"></p>
                     <ul class="nav">
-                        <li class="active"><a href="../helloworld/index.html"><i class="icon-bullhorn"></i> Hello World</a></li>
+                        <li><a href="../helloworld/index.html"><i class="icon-bullhorn"></i> Hello World</a></li>
                         <li><a href="../admin/index.html"><i class="icon-off"></i> AdminCP</a></li>
                         <li><a href="../chat/index.html"><i class="icon-comment"></i> Simple Chat</a></li>
-                        <li><a href="../game/index.html"><i class="icon-screenshot"></i> Simple Game</a></li>
+                        <li class="active"><a href="../game/index.html"><i class="icon-screenshot"></i> Simple Game</a></li>
                     </ul>
                 </div>
 
@@ -42,53 +42,28 @@
 
 
     <div class="container" id="demo">
-        <div class="row-fluid">
-
-            <!-- Left column -->
-            <div class="span3">
-                <div class="well sidebar-nav">
-                    <ul class="nav nav-list">
-                        <li class="nav-header">General</li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="client.socket.open();">Open socket</a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="client.socket.close();">Close socket</a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="client.socket.ping();">Ping request</a>
-                        </li>
-
-                        <li class="nav-header">HelloWorld actions</li>
-                        <li>
-                            <a href="javascript:void(0);" onclick="client.socket.send('helloworld', prompt('Write something :', 'Hello World !'));">Send data to server</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-
-            <!-- Right column -->
-            <div class="span9">
-                <div id="demo-console"></div>
-            </div>
-
-
+        <a href="javascript:void(0);" onclick="client.socket.sys_send('login','root');">login</a> /
+        <a href="javascript:void(0);" onclick="client.socket.sys_send('reboot');">reboot server</a> /
+        <a href="javascript:void(0);" onclick="client.socket.sys_send('shutdown');">shutdown server</a>
+        <div id="scene">
+            <!-- <div class="character npc1"></div> -->
         </div>
+        <p class="muted">Sprites taken <a href="http://untamed.wild-refuge.net/rmxpresources.php?characters" target="_blank">here</a></p>
     </div>
 
     <!-- JavaScript files -->
     <script src="../lib/vendor/jquery-2.0.2.min.js"></script>
     <script src="../lib/vendor/bootstrap/js/bootstrap.min.js"></script>
     <script src="../lib/SocketClient.js"></script>
-    <script src="js/HelloWorld.js"></script>
+    <script src="js/Game.js"></script>
+    <script src="js/Character.js"></script>
     <script>
 
         // Client Initialization
         var client;
         jQuery(document).ready(function()
         {
-            client = new HelloWorld("127.0.0.1", "8080");
+            client = new Game("127.0.0.1", "8083");
         });
 
     </script>
