@@ -49,44 +49,46 @@ function Game(address, port)
 	{
 		switch(data.action)
 		{
+			// triggered when server send our real state to syncronize the browser
 			case "sync" :
-				this.hero.sync(data.content);
-				if(data.content.skin)
+				if(data.content.initial_sync)
 				{
-					this.hero.change_skin(data.content.skin);
+					this.hero.sync(data.content.initial_sync.props).change_skin(data.content.initial_sync.skin).place();
+
+					for(var id in data.content.initial_sync.players_list)
+					{
+						this.insert_player(id, data.content.initial_sync.players_list[id]);
+					}
+				}
+				else
+				{
+					this.hero.sync(data.content);
 				}
 			break;
 
-			case "players_list" :
-				for(var id in data.content)
-				{
-					//if(!this.players[id])
-					//{
-						this.players[id] = new Character(data.content[id].username, this.scene);
-						this.players[id].change_skin(data.content[id].skin).sync(data.content[id]).place().animate();
-					//}
-				}
-			break;
-
+			// triggered when a new player join the game
 			case "new_player" :
-				//if(!this.players[data.content.id])
-				//{
-					this.players[data.content.id] = new Character(data.content.username, this.scene);
-					this.players[data.content.id].change_skin(data.content.props.skin).sync(data.content.props).place().animate();
-				//}
+				this.insert_player(data.content.id, data.content.props);
 			break;
 
+			// triggered when an other player position change
 			case "player_update" :
 				this.players[data.content.id].sync(data.content.props);
-				//this.display_log("Data received : " + data.content);
 			break;
 
-			case "player_jump" :
-				this.players[data.content.id].jump();
+			// triggered when an other player perform an action that we should know about
+			case "player_action" :
+				switch(data.content.action)
+				{
+					case "jump" :
+						this.players[data.content.id].jump();
+					break;
+				}
 			break;
 
+			// triggered when a player quit the game
 			case "player_quit" :
-				this.players[data.content].disappear();
+				this.remove_player(data.content);
 			break;
 		}
 	}
@@ -95,13 +97,30 @@ function Game(address, port)
 	this.init_hero = function()
 	{
 		this.hero = new Character(prompt("Enter a player name :"), this.scene);
-		this.hero.change_username("<strong>You</strong>");
-		//this.hero = new Character("npc1", this.scene);
-		//this.hero = new Character("enemy" + (1 + Math.round(Math.random()*2)), this.scene);
+		this.hero.change_displayed_username("<strong>ME</strong>");
 
 		jQuery(document)
 		.keydown(jQuery.proxy(this.on_keyevent, this))
 		.keyup(jQuery.proxy(this.on_keyevent, this));
+	}
+
+	// create a new player instance in the game
+	this.insert_player = function(id, props)
+	{
+		if(this.players[id])
+		{
+			this.remove_player(id);
+		}
+
+		this.players[id] = new Character(props.username, this.scene, props);
+		this.players[id].sync(props).place().animate();
+	}
+
+	// remove a player instance in the game
+	this.remove_player = function(id)
+	{
+		this.players[id].disappear();
+		delete this.players[id];
 	}
 
 	// handler executed when player press or release a key on his keyboard

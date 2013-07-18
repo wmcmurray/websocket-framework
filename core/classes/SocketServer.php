@@ -176,13 +176,13 @@ class SocketServer
 		socket_listen($this->master_socket, $this->max_clients);
 	}
 
-	protected function list_clients($prop = array(), $clients = array())
+	protected function list_clients($prop = array(), $clients = NULL)
 	{
 		if(!is_array($prop))
 		{
 			$prop = array($prop);
 		}
-		$a = $clients ? $clients : $this->clients;
+		$a = !is_null($clients) ? $clients : $this->clients;
 		$b = array();
 		foreach($a as $k => $v)
 		{

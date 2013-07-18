@@ -32,11 +32,11 @@ class Game_SocketServer extends SocketServer
         if($counter%30 == 0)
         {
             output("AUTO-SAVING players state...");
-            $this->update_clients();
             $clients = $this->get_clients();
 
             foreach($clients as $client)
             {
+                $this->update_client($client);
                 $this->save_client_state($client);
             }            
         }
@@ -44,7 +44,7 @@ class Game_SocketServer extends SocketServer
 
     protected function on_client_disconnect($client)
     {
-        //$this->update_clients($client);
+        $this->update_client($client);
         $this->save_client_state($client);
         $this->send_to_others($client, "player_quit", $client->id);
     }
@@ -58,29 +58,29 @@ class Game_SocketServer extends SocketServer
     {
         if($data)
         {
-            $file = "game/players/" . $data . ".json";
-            $player_data_exists = $this->fm->file_exists($file);
+            $username = strtolower($data);
+            $client->set("username", $username);
+            $initial_state = $this->get_client_state($client);
 
-            if($player_data_exists)
+            if($initial_state)
             {
-                $initial_state = json_decode($this->fm->read_file_content($file), true);
+                // reset last update time and pressed keys to prevent calculation problems
+                $initial_state["last_update"] = microtime(true);
+                $initial_state["direction"] = array(0, 0);
+
+                foreach($initial_state["keys"] as $k => $v)
+                {
+                    $initial_state["keys"][$k] = false;
+                }
             }
             else
             {
-                $initial_state = $this->get_initial_player_state();
+                $initial_state = $this->create_initial_player_state();
             }
             
             $client->set($initial_state);
-            $client->set("username", $data);
-            $this->initial_sync_client($client);
-
-            $clients = $this->get_clients($client);
-            if($clients)
-            {
-                $this->send($client, "players_list", $this->list_clients(array("username", "skin", "x", "y", "speed", "direction"), $clients));
-            }
-
-            $this->send_to_others($client, "new_player", array("id" => $client->id, "username" => $client->get("username"), "props" => $client->get(array("skin", "x", "y", "speed", "direction"))));
+            $this->sync_client($client, true);
+            $this->send_to_others($client, "new_player", array("id" => $client->id, "props" => $client->get(array("username", "skin", "x", "y", "speed", "direction"))));
         }
     }
 
@@ -91,7 +91,7 @@ class Game_SocketServer extends SocketServer
         {
             if($data->key == "space" && $data->type == "keydown")
             {
-                $this->send_to_others($client, "player_jump", array("id" => $client->id));
+                $this->send_to_others($client, "player_action", array("id" => $client->id, "action" => "jump"));
             }
             else
             {
@@ -129,32 +129,28 @@ class Game_SocketServer extends SocketServer
         $client->set("last_update", $now);
     }
 
-    // update many clients at once
-    protected function update_clients($clients = null)
+    // syncronize a client estimated state with it's real state on the server (if it's the first sync, we send more data)
+    protected function sync_client($client, $initial_sync = false)
     {
-        if(is_null($clients))
+        $props = $client->get(array("x", "y", "speed", "direction"));
+
+        if($initial_sync)
         {
-            $clients = $this->get_clients();
-        }
+            $initial_sync_props = array(
+                "props"         => $props,
+                "skin"          => $client->get("skin"),
+                "players_list"  => $this->list_clients(array("username", "skin", "x", "y", "speed", "direction"), $this->get_clients($client))
+            );
 
-        foreach($clients as $client)
+            $this->send($client, "sync", array("initial_sync" => $initial_sync_props));
+        }
+        else
         {
-            $this->update_client($client);
+            $this->send($client, "sync", $props);
         }
     }
 
-    // syncronize a client estimated state with it's real state on the server
-    protected function sync_client($client, $send_to = null)
-    {
-        $this->send((is_null($send_to) ? $client : $send_to), "sync", $client->get(array("x", "y", "speed", "direction")));
-    }
-
-    // syncronize a client estimated state with it's real state on the server
-    protected function initial_sync_client($client, $send_to = null)
-    {
-        $this->send((is_null($send_to) ? $client : $send_to), "sync", $client->get(array("skin", "x", "y", "speed", "direction")));
-    }
-
+    // save client data in a text file
     protected function save_client_state($client)
     {
         $username = $client->get("username");
@@ -165,8 +161,15 @@ class Game_SocketServer extends SocketServer
         }
     }
 
-    // returns a initial state for new players
-    protected function get_initial_player_state()
+    // check if a username has data saved on server, if yes, return it
+    protected function get_client_state($client)
+    {
+        $file = "game/players/" . $client->get("username") . ".json";
+        return $this->fm->file_exists($file) ? json_decode($this->fm->read_file_content($file), true) : false;
+    }
+
+    // returns a initial state for a new players
+    protected function create_initial_player_state()
     {
         $keystates = array();
 

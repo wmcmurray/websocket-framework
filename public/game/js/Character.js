@@ -5,12 +5,10 @@
 function Character(username, parent, props)
 {
 	this.username = username;
-	this.skin = "hero8";
 	this.parent = parent;
 	this.props = props ? props : {};
-	this.width = 32;
-	this.height = 48;
 	this.anim_frame = 1;
+	this.is_jumping = false;
 	this.anim_interval;
 	this.refresh_interval;
 	this.init();
@@ -32,40 +30,22 @@ Character.prototype.init = function()
 	this.view.sprite.appendChild(this.view.username);
 	this.view.appendChild(this.view.sprite);
 
-	this.change_skin(this.skin);
-	
-	switch(this.skin)
+	if(this.props.skin)
 	{
-		case "npc1" :
-			this.height = 32;
-			this.view.style.height = "32px"
-		break;
+		this.change_skin(this.props.skin);
 	}
-
-	this.appear();
 	
-	return this;
-}
-
-Character.prototype.change_username = function(username)
-{
-	jQuery(this.view).find(".username").html(username);
-
-	return this;
-}
-
-Character.prototype.change_skin = function(skin)
-{
-	jQuery(this.view).removeClass(this.skin).addClass(skin);
-	this.view.sprite.style.backgroundImage = "url(images/" + skin + ".png)";
-	this.skin = skin;
+	this.appear();
 	
 	return this;
 }
 
 Character.prototype.sync = function(props)
 {
-	this.props = props;
+	for(var i in props)
+	{
+		this.props[i] = props[i];
+	}
 
 	if(this.props.direction[0] != 0 || this.props.direction[1] != 0)
 	{
@@ -91,6 +71,25 @@ Character.prototype.sync = function(props)
 	return this;
 }
 
+Character.prototype.apply_keyevent = function(type, key)
+{
+	switch(type)
+	{
+		case "keydown" :
+			switch(key)
+			{
+				case "w" : break;
+				case "a" : break;
+				case "s" : break;
+				case "d" : break;
+				case "space" : this.jump(); break;
+			}
+		break;
+	}
+
+	return this;
+}
+
 Character.prototype.refresh = function()
 {
 	// update estimated position
@@ -102,22 +101,61 @@ Character.prototype.refresh = function()
 	return this;
 }
 
-Character.prototype.animate = function()
+Character.prototype.place = function(animated)
 {
-	if(this.props.direction[0] != 0 || this.props.direction[1] != 0)
+	var props = {left: (this.props.x - (this.width * 0.5))+ "px", top: (this.props.y - this.height) + "px"};
+
+	if(animated)
 	{
-		if(this.anim_frame >= 4)
-		{
-			this.anim_frame = 1;
-		}
-		else
-		{
-			this.anim_frame++;
-		}
+		jQuery(this.view).stop().animate(props, 1000, "linear");
 	}
 	else
 	{
-		//this.anim_frame = 1;
+		jQuery(this.view).stop().css(props);
+	}
+	
+	return this;
+}
+
+Character.prototype.jump = function()
+{
+	if(!this.is_jumping)
+	{
+		this.is_jumping = true;
+		this.anim_frame = Math.random() < 0.5 ? 2 : 4;
+
+		jQuery(this.view.sprite).stop().animate({top: -this.height + "px"}, 500,
+		jQuery.proxy(function()
+		{
+			jQuery(this.view.sprite).animate({top: "0px"}, 400, jQuery.proxy(function()
+			{
+				this.is_jumping = false;
+			}, this));
+		}, this));
+	}
+
+	return this;
+}
+
+Character.prototype.animate = function()
+{
+	if(!this.is_jumping)
+	{
+		if(this.props.direction[0] != 0 || this.props.direction[1] != 0)
+		{
+			if(this.anim_frame >= 4)
+			{
+				this.anim_frame = 1;
+			}
+			else
+			{
+				this.anim_frame++;
+			}
+		}
+		else
+		{
+			//this.anim_frame = 1;
+		}
 	}
 
 	// update sprite anim
@@ -140,25 +178,15 @@ Character.prototype.animate = function()
 	}
 
 	var zIndex = Math.round(jQuery(this.view).offset().top + this.height);
-	//console.log(zIndex);
 	this.view.style.zIndex = zIndex;
 	
 	return this;
 }
 
-Character.prototype.place = function(animated)
+Character.prototype.update_sprite = function(x, y)
 {
-	var props = {left: (this.props.x - (this.width * 0.5))+ "px", top: (this.props.y - this.height) + "px"};
+	jQuery(this.view.sprite).css({backgroundPosition : -((x-1) * this.width) + "px " + -((y-1) * this.height) + "px"});
 
-	if(animated)
-	{
-		jQuery(this.view).stop().animate(props, 1000, "linear");
-	}
-	else
-	{
-		jQuery(this.view).stop().css(props);
-	}
-	
 	return this;
 }
 
@@ -171,7 +199,7 @@ Character.prototype.appear = function()
 	return this;
 }
 
-Character.prototype.disappear = function()
+Character.prototype.disappear = function(instantly)
 {
 	if(this.refresh_interval)
 	{
@@ -183,63 +211,48 @@ Character.prototype.disappear = function()
 		clearInterval(this.anim_interval);
 	}
 
-	var parent = this.parent;
-	var view = this.view;
-	jQuery(this.view).stop().animate({opacity: 0}, 1000, function(){parent.removeChild(view);});
+	if(instantly)
+	{
+		this.parent.removeChild(this.view);
+	}
+	else
+	{
+		var view = this.view;
+		var parent = this.parent;
+		jQuery(this.view).stop().animate({opacity: 0}, 1000, function(){ parent.removeChild(view); });
+	}
+	
+	return this;
+}
+
+Character.prototype.change_displayed_username = function(username)
+{
+	this.view.username.innerHTML = username;
 
 	return this;
 }
 
-Character.prototype.apply_keyevent = function(type, key)
+Character.prototype.change_skin = function(skin)
 {
-	switch(type)
+	jQuery(this.view).removeClass(this.props.skin).addClass(skin);
+	this.view.sprite.style.backgroundImage = "url(images/" + skin + ".png)";
+	this.props.skin = skin;
+
+	switch(this.props.skin)
 	{
-		case "keydown" :
-			switch(key)
-			{
-				case "w" :
-					//this.props.y -= this.props.speed;
-					//this.update_sprite(1, 4);
-				break;
+		case "npc1" :
+			this.width = 32;
+			this.height = 32;
+		break;
 
-				case "a" :
-					//this.props.x -= this.props.speed;
-					//this.update_sprite(1, 2);
-				break;
-
-				case "s" :
-					//this.props.y += this.props.speed;
-					//this.update_sprite(1, 1);
-				break;
-
-				case "d" :
-					//this.props.x += this.props.speed;
-					//this.update_sprite(1, 3);
-				break;
-
-				case "space" :
-					this.jump();
-				break;
-			}
+		default :
+			this.width = 32;
+			this.height = 48;
 		break;
 	}
 
-	//this.place(true);
-	return this;
-}
-
-Character.prototype.jump = function()
-{
-	var sprite = jQuery(this.view).find(".sprite");
-	if(!sprite.prop("jumping"))
-	{
-		sprite.stop().prop("jumping", true).animate({top: -this.height + "px"}, 500, function(){ jQuery(this).animate({top: "0px"}, 400, function(){ jQuery(this).prop("jumping", false); }); });
-	}
-}
-
-Character.prototype.update_sprite = function(x, y)
-{
-	jQuery(this.view).find(".sprite").css({backgroundPosition : -((x-1) * this.width) + "px " + -((y-1) * this.height) + "px"});
-
+	this.view.style.width = this.width + "px";
+	this.view.style.height = this.height + "px";
+	
 	return this;
 }
