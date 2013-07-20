@@ -39,7 +39,7 @@ Demos included
 	</tr>
 	<tr>
 		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-game.jpg" width="333">
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/dev/screenshots/demo-game.jpg" width="333">
 		</td>
 		<td>
 			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-chat.gif" width="333">
@@ -69,7 +69,7 @@ TODOs list
 - [x] Add a raw transport layer (raw_send()) for people who wants full control over optimisation
 - [x] Add possibility to create custom admin commands
 - [x] Add an helper to save and retrieve data in text files
-- [/] (in progress...) Create a simple game demo
+- [/] Create a simple game demo
 - [ ] Create a realtime website demo
 - [ ] Create an online radio
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
