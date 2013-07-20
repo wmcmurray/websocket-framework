@@ -159,6 +159,20 @@ Character.prototype.jump = function()
 	return this;
 }
 
+Character.prototype.talk = function(msg)
+{
+	var bubble = document.createElement("div");
+	bubble.className = "bubble";
+	bubble.innerHTML = msg;
+	this.view.appendChild(bubble);
+
+	jQuery(bubble).animate({opacity: 0, bottom: "250%"}, 5000, function(){
+		this.parentNode.removeChild(this);
+	});
+
+	return this;
+}
+
 Character.prototype.teleport = function(x, y)
 {
 	this.props.x = x;

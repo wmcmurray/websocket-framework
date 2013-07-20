@@ -112,3 +112,17 @@ body
 	border: 1px solid #0f0;
 	background-color: rgba(0,255,0,0.3);
 }
+
+#demo #scene .character .bubble
+{
+	text-shadow: #000 0px 0px 2px;
+	
+	position: absolute;
+	bottom: 150%;
+	left: -84px;
+
+	width: 200px;
+
+	text-align: center;
+	color: #fff;
+}

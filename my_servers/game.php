@@ -133,6 +133,11 @@ class Game_SocketServer extends SocketServer
         $this->send_to_others($client, "player_teleport", array("id" => $client->id, "props" => $client->get(array("x", "y"))));
     }
 
+    protected function handle_talk($client, $data)
+    {
+        $this->send_to_others($client, "player_action", array("id" => $client->id, "action" => "talk", "msg" => $data));
+    }
+
     // OTHER METHODS
     //===========================================================================
 

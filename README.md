@@ -45,6 +45,7 @@ Demos included
 			<ul>
 				<li>Players state are kept on the server, only keyboard events data are sent</li>
 				<li>Client-side movements anticipation</li>
+				<li>Simple in-game chat</li>
 				<li>Players state can be saved in text files (JSON format)</li>
 			</ul>
 		</td>

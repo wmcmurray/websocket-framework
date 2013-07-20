@@ -112,6 +112,10 @@ function Game(address, port)
 					case "jump" :
 						this.players[data.content.id].jump();
 					break;
+
+					case "talk" :
+						this.players[data.content.id].talk(data.content.msg);
+					break;
 				}
 			break;
 
@@ -150,25 +154,6 @@ function Game(address, port)
 		.resize(jQuery.proxy(this.update_camera, this, 0));
 	}
 
-	// create a new player instance in the game
-	this.insert_player = function(id, props)
-	{
-		if(this.players[id])
-		{
-			this.remove_player(id);
-		}
-
-		this.players[id] = new Character(props.username, this.map, props);
-		this.players[id].sync(props).place().update_depth();
-	}
-
-	// remove a player instance in the game
-	this.remove_player = function(id)
-	{
-		this.players[id].disappear();
-		delete this.players[id];
-	}
-
 	// handler executed when player press or release a key on his keyboard
 	this.on_keyevent = function(e)
 	{
@@ -177,7 +162,14 @@ function Game(address, port)
 		{
 			if(e.type == "keydown")
 			{
-				if(!this.keypressed[key] || this.keypressed[key] == false)
+				if(key == "t")
+				{
+					var msg = prompt("Enter your message here :");
+					this.socket.send("talk", msg);
+					this.hero.talk(msg);
+					return;
+				}
+				else if(!this.keypressed[key] || this.keypressed[key] == false)
 				{
 					this.keypressed[key] = true;
 				}
@@ -222,6 +214,25 @@ function Game(address, port)
 			case 84 : return "t"; break;
 			default : return false; break;
 		}
+	}
+
+	// create a new player instance in the game
+	this.insert_player = function(id, props)
+	{
+		if(this.players[id])
+		{
+			this.remove_player(id);
+		}
+
+		this.players[id] = new Character(props.username, this.map, props);
+		this.players[id].sync(props).place().update_depth();
+	}
+
+	// remove a player instance in the game
+	this.remove_player = function(id)
+	{
+		this.players[id].disappear();
+		delete this.players[id];
 	}
 
 	// move the whole scene to always see player, this simulate a camera effect
