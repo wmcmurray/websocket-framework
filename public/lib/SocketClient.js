@@ -125,7 +125,7 @@ SocketClient.prototype.set_debug = function (bool)
 SocketClient.prototype.handle_onopen = function ()
 {
 	this.connections_attempts = 0;
-    this.fire_event("open");
+    this.trigger("open");
     this.debug("Socket opened.");
 }
 
@@ -145,7 +145,7 @@ SocketClient.prototype.handle_onmessage = function (e)
     // normal data type
     if(data.action)
     {
-        this.fire_event("message", data);
+        this.trigger("message", data);
     }
 
     // system data type
@@ -166,7 +166,7 @@ SocketClient.prototype.handle_onmessage = function (e)
 	        case "ping_response":
 	            if(this.ping_start)
 	            {
-	                this.fire_event("ping", (new Date().getTime() - this.ping_start));
+	                this.trigger("ping", (new Date().getTime() - this.ping_start));
 	                this.ping_start = null;
 	            }
 	        break;
@@ -179,7 +179,7 @@ SocketClient.prototype.handle_onmessage = function (e)
     // raw data type
     else
     {
-        this.fire_event("message", data);
+        this.trigger("message", data);
     }
 }
 
@@ -187,7 +187,7 @@ SocketClient.prototype.handle_onmessage = function (e)
 // ---------------------------------------------
 SocketClient.prototype.handle_onclose = function (e)
 {
-    this.fire_event("close", e);
+    this.trigger("close", e);
     this.debug("Socket closed.");
 	
     if(this.ping_start)
@@ -213,7 +213,7 @@ SocketClient.prototype.handle_onclose = function (e)
 // ---------------------------------------------
 SocketClient.prototype.handle_onerror = function (e)
 {
-    this.fire_event("error", e);
+    this.trigger("error", e);
     this.debug("Socket error.");
 }
 
@@ -234,8 +234,7 @@ SocketClient.prototype.set_reconnect_timeout = function ( delay )
 	this.reconnect_timeout = setTimeout(this.proxy(this.open, this, this.last_opening_vars), delay);
 }
 
-
-SocketClient.prototype.fire_event = function (evt, args)
+SocketClient.prototype.trigger = function (evt, args)
 {
     if(this.events_listeners[evt])
     {
@@ -258,7 +257,7 @@ SocketClient.prototype.write = function (data)
 
 SocketClient.prototype.alert = function (t)
 {
-    this.fire_event("alert", t);
+    this.trigger("alert", t);
 }
 
 SocketClient.prototype.debug = function (t)

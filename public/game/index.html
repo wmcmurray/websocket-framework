@@ -44,9 +44,10 @@
     <div class="container" id="demo">
         <a href="javascript:void(0);" onclick="client.socket.sys_send('login','root');">login</a> /
         <a href="javascript:void(0);" onclick="client.socket.sys_send('reboot');">reboot server</a> /
-        <a href="javascript:void(0);" onclick="client.socket.sys_send('shutdown');">shutdown server</a>
+        <a href="javascript:void(0);" onclick="client.socket.sys_send('shutdown');">shutdown server</a> /
+        <a href="javascript:void(0);" onclick="client.socket.send('teleport', {x: jQuery(client.map).width() * 0.5, y: jQuery(client.map).height() * 0.5});">teleport center</a>
         <div id="scene">
-            <!-- <div class="character npc1"></div> -->
+            <div id="map"></div>
         </div>
         <p class="muted">Sprites taken <a href="http://untamed.wild-refuge.net/rmxpresources.php?characters" target="_blank">here</a></p>
     </div>
@@ -55,6 +56,7 @@
     <script src="../lib/vendor/jquery-2.0.2.min.js"></script>
     <script src="../lib/vendor/bootstrap/js/bootstrap.min.js"></script>
     <script src="../lib/SocketClient.js"></script>
+    <script src="../lib/EventsDispatcher.js"></script>
     <script src="js/Game.js"></script>
     <script src="js/Character.js"></script>
     <script>

@@ -114,6 +114,15 @@ class Game_SocketServer extends SocketServer
         }
     }
 
+    protected function handle_teleport($client, $data)
+    {
+        $client->set("x", $data->x);
+        $client->set("y", $data->y);
+        $client->set("last_update", microtime(true));
+        $this->send($client, "teleport", array("x" => $data->x, "y" => $data->y));
+        $this->send_to_others($client, "player_teleport", array("id" => $client->id, "props" => $client->get(array("x", "y"))));
+    }
+
     // OTHER METHODS
     //===========================================================================
 
@@ -124,8 +133,8 @@ class Game_SocketServer extends SocketServer
         $now = microtime(true);
         $deltatime = $now - $props["last_update"];
         $divider = $props["direction"][0] && $props["direction"][1] ? 0.75 : 1;
-        $client->set("x", $props["x"] + (($props["speed"] * $deltatime) * ($props["direction"][0] * $divider)));
-        $client->set("y", $props["y"] + (($props["speed"] * $deltatime) * ($props["direction"][1] * $divider)));
+        $client->set("x", round($props["x"] + (($props["speed"] * $deltatime) * ($props["direction"][0] * $divider))));
+        $client->set("y", round($props["y"] + (($props["speed"] * $deltatime) * ($props["direction"][1] * $divider))));
         $client->set("last_update", $now);
     }
 

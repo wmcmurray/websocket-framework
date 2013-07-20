@@ -21,6 +21,16 @@ body
 	position: relative;
 	overflow: hidden;
 	height: 100%;
+}
+
+#demo #scene #map
+{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	overflow: hidden;
+	width: 2000px;
+	height: 2000px;
 	background: #aaa url(http://esforces.com/maptutorial/MapTutImages/Grass1.jpg);
 }
 
@@ -58,6 +68,25 @@ body
 	margin-left: 16px;
 
 	text-align: center;
+}
+
+#demo #scene .character .coord
+{
+	position: absolute;
+	top: 100%;
+	left: 0px;
+	z-index: 3;
+
+	display: none;
+
+	font-size: 10px;
+	line-height: 1em;
+	text-align: left;
+}
+
+#demo #scene .character:hover .coord
+{
+	display: block;
 }
 
 #demo #scene .character .shadow

@@ -7,8 +7,10 @@ function Game(address, port)
 	this.init = function()
 	{
 		this.scene = document.getElementById("scene");
+		this.map = document.getElementById("map");
 		this.players = {};
 		this.keypressed = {};
+		this.fps = 0;
 
 		// instanciate the SocketClient class and add eventsListeners
 		this.socket = new SocketClient(address, port);
@@ -19,6 +21,12 @@ function Game(address, port)
 		// opening of the socket
 		this.display_log("Trying to open the socket...");
 		this.socket.open();
+	}
+
+	// the main game loop (characters mouvements are not part of this loop)
+	this.loop = function()
+	{
+		// main game loop... unused for now
 	}
 
 	// handler executed when socket is opened
@@ -38,6 +46,8 @@ function Game(address, port)
 	{
 		this.display_log("Socket closed with code : " + e.code);
 
+		clearInterval(this.loop_interval);
+
 		for(var i in this.players)
 		{
 			this.players[i].disappear();
@@ -54,6 +64,18 @@ function Game(address, port)
 				if(data.content.initial_sync)
 				{
 					this.hero.sync(data.content.initial_sync.props).change_skin(data.content.initial_sync.skin).place();
+					this.update_camera(0);
+
+					if(this.loop_interval)
+					{
+						clearInterval(this.loop_interval);
+					}
+
+					if(this.fps > 0)
+					{
+						this.loop_interval = setInterval(this.socket.proxy(this.loop, this), 1000 / this.fps);
+						this.loop();
+					}
 
 					for(var id in data.content.initial_sync.players_list)
 					{
@@ -64,6 +86,12 @@ function Game(address, port)
 				{
 					this.hero.sync(data.content);
 				}
+			break;
+
+			// triggered when we teleport
+			case "teleport" :
+				this.hero.sync(data.content).place();
+				this.update_camera(0);
 			break;
 
 			// triggered when a new player join the game
@@ -86,6 +114,11 @@ function Game(address, port)
 				}
 			break;
 
+			// triggered when an other player teleport
+			case "player_teleport" :
+				this.players[data.content.id].sync(data.content.props).place();
+			break;
+
 			// triggered when a player quit the game
 			case "player_quit" :
 				this.remove_player(data.content);
@@ -96,12 +129,23 @@ function Game(address, port)
 	// create our character and set all events listeners needed for interactions
 	this.init_hero = function()
 	{
-		this.hero = new Character(prompt("Enter a player name :"), this.scene);
+		this.hero = new Character(prompt("Enter a player name :", ""), this.map);
 		this.hero.change_displayed_username("<strong>ME</strong>");
+		this.hero.on("refresh", jQuery.proxy(this.update_camera, this))
 
 		jQuery(document)
 		.keydown(jQuery.proxy(this.on_keyevent, this))
 		.keyup(jQuery.proxy(this.on_keyevent, this));
+
+		jQuery(window).blur(function()
+		{
+			var a = Array(87, 65, 83, 68);
+			for(var i in a)
+			{
+			    jQuery(document).trigger(jQuery.Event('keyup', {which: a[i]}));
+			}
+		})
+		.resize(jQuery.proxy(this.update_camera, this, 0));
 	}
 
 	// create a new player instance in the game
@@ -112,8 +156,8 @@ function Game(address, port)
 			this.remove_player(id);
 		}
 
-		this.players[id] = new Character(props.username, this.scene, props);
-		this.players[id].sync(props).place().animate();
+		this.players[id] = new Character(props.username, this.map, props);
+		this.players[id].sync(props).place().update_depth();
 	}
 
 	// remove a player instance in the game
@@ -143,7 +187,14 @@ function Game(address, port)
 
 			else if(e.type == "keyup")
 			{
-				this.keypressed[key] = false;
+				if(this.keypressed[key])
+				{
+					this.keypressed[key] = false;
+				}
+				else
+				{
+					return;
+				}
 			}
 
 			e.preventDefault();
@@ -165,6 +216,71 @@ function Game(address, port)
 			case 13 : return "enter"; break;
 			case 69 : return "e"; break;
 			default : return false; break;
+		}
+	}
+
+	// move the whole scene to always see player, this simulate a camera effect
+	this.update_camera = function(speed)
+	{
+		var sceneW = jQuery(this.scene).width();
+		var sceneH = jQuery(this.scene).height();
+		var mapW = jQuery(this.map).width();
+		var mapH = jQuery(this.map).height();
+		var heroW = this.hero ? jQuery(this.hero.view).width() : 0;
+		var heroH = this.hero ? jQuery(this.hero.view).height() : 0;
+		//var heroL = this.hero ? Number(this.hero.view.style.left.replace("px", "")) : 0;
+		//var heroT = this.hero ? Number(this.hero.view.style.top.replace("px", "")) : 0;
+		var heroL = this.hero ? this.hero.props.x : 0;
+		var heroT = this.hero ? this.hero.props.y : 0;
+		var mapTopMax = -(mapH - sceneH);
+		var mapLeftMax = -(mapW - sceneW);
+		var left = 0;
+		var top = 0;
+		
+		if(mapW < sceneW)
+		{
+			left = (sceneW - mapW) * 0.5;
+		}
+		else
+		{
+			left = -heroL + (sceneW * 0.5);
+
+			if(left > 0)
+			{
+				left = 0;
+			}
+			else if(left < mapLeftMax)
+			{
+				left = mapLeftMax;
+			}
+		}
+
+		
+		if(mapH < sceneH)
+		{
+			top = (sceneH - mapH) * 0.5;
+		}
+		else
+		{
+			top = -heroT + (sceneH * 0.5) + (heroH * 0.5);
+
+			if(top > 0)
+			{
+				top = 0;
+			}
+			else if(top < mapTopMax)
+			{
+				top = mapTopMax;
+			}
+		}
+		
+		if(!speed)
+		{
+			jQuery(this.map).stop().css({left: left + "px", top: top + "px"});
+		}
+		else
+		{
+			jQuery(this.map).stop().animate({left: left + "px", top: top + "px"}, speed, "linear");
 		}
 	}
 

@@ -11,8 +11,11 @@ function Character(username, parent, props)
 	this.is_jumping = false;
 	this.anim_interval;
 	this.refresh_interval;
+	this.refresh_interval_time = 1000;
 	this.init();
 }
+
+Character.prototype = new EventsDispatcher();
 
 Character.prototype.init = function()
 {
@@ -27,7 +30,11 @@ Character.prototype.init = function()
 	this.view.username.className = "username";
 	this.view.username.innerHTML = this.username ? this.username : "Anonymous";
 
+	this.view.coord = document.createElement("div");
+	this.view.coord.className = "coord";
+
 	this.view.sprite.appendChild(this.view.username);
+	this.view.appendChild(this.view.coord);
 	this.view.appendChild(this.view.sprite);
 
 	if(this.props.skin)
@@ -54,7 +61,7 @@ Character.prototype.sync = function(props)
 		{
 			clearInterval(this.refresh_interval);
 		}
-		this.refresh_interval = setInterval(jQuery.proxy(this.refresh, this), 1000);
+		this.refresh_interval = setInterval(jQuery.proxy(this.refresh, this), this.refresh_interval_time);
 
 		// anim
 		if(this.anim_interval)
@@ -92,11 +99,16 @@ Character.prototype.apply_keyevent = function(type, key)
 
 Character.prototype.refresh = function()
 {
+	// display current coords
+	this.view.coord.innerHTML = "x:" + this.props.x + "<br>y:" + this.props.y;
+
 	// update estimated position
 	var divider = this.props.direction[0] && this.props.direction[1] ? 0.75 : 1;
 	this.props.x += (this.props.direction[0] * divider) * this.props.speed;
 	this.props.y += (this.props.direction[1] * divider) * this.props.speed;
 	this.place(true);
+
+	this.trigger("refresh", this.refresh_interval_time);
 	
 	return this;
 }
@@ -107,7 +119,7 @@ Character.prototype.place = function(animated)
 
 	if(animated)
 	{
-		jQuery(this.view).stop().animate(props, 1000, "linear");
+		jQuery(this.view).stop().animate(props, this.refresh_interval_time, "linear");
 	}
 	else
 	{
@@ -177,9 +189,15 @@ Character.prototype.animate = function()
 		this.update_sprite(this.anim_frame, 2);
 	}
 
-	var zIndex = Math.round(jQuery(this.view).offset().top + this.height);
-	this.view.style.zIndex = zIndex;
+	this.update_depth();
 	
+	return this;
+}
+
+Character.prototype.update_depth = function()
+{
+	this.view.style.zIndex = Math.round(Number(this.view.style.top.replace("px", "")) + this.height);
+
 	return this;
 }
 
