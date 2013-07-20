@@ -116,6 +116,7 @@ class Game_SocketServer extends SocketServer
 
     protected function handle_teleport($client, $data)
     {
+        $this->update_client($client);
         $client->set("x", $data->x);
         $client->set("y", $data->y);
         $client->set("last_update", microtime(true));

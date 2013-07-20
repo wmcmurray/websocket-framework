@@ -149,6 +149,15 @@ Character.prototype.jump = function()
 	return this;
 }
 
+Character.prototype.teleport = function(x, y)
+{
+	this.props.x = x;
+	this.props.y = y;
+	this.place();
+
+	return this;
+}
+
 Character.prototype.animate = function()
 {
 	if(!this.is_jumping)

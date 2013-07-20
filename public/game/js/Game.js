@@ -90,8 +90,9 @@ function Game(address, port)
 
 			// triggered when we teleport
 			case "teleport" :
-				this.hero.sync(data.content).place();
+				this.hero.teleport(data.content.x, data.content.y);
 				this.update_camera(0);
+				this.hero.sync(data.content);
 			break;
 
 			// triggered when a new player join the game
@@ -116,7 +117,8 @@ function Game(address, port)
 
 			// triggered when an other player teleport
 			case "player_teleport" :
-				this.players[data.content.id].sync(data.content.props).place();
+				this.players[data.content.id].teleport(data.content.props.x, data.content.props.y);
+				this.players[data.content.id].sync(data.content.props);
 			break;
 
 			// triggered when a player quit the game
@@ -220,7 +222,7 @@ function Game(address, port)
 	}
 
 	// move the whole scene to always see player, this simulate a camera effect
-	this.update_camera = function(speed)
+	this.update_camera = function(speed, easing)
 	{
 		var sceneW = jQuery(this.scene).width();
 		var sceneH = jQuery(this.scene).height();
@@ -280,7 +282,7 @@ function Game(address, port)
 		}
 		else
 		{
-			jQuery(this.map).stop().animate({left: left + "px", top: top + "px"}, speed, "linear");
+			jQuery(this.map).stop().animate({left: left + "px", top: top + "px"}, speed, easing ? easing : "linear");
 		}
 	}
 

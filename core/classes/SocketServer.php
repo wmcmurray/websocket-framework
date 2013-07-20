@@ -25,8 +25,21 @@ class SocketServer
 	{
 		$this->address = $address;
 		$this->port = $port;
+		$this->master_socket = socket_create((filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? AF_INET6 : AF_INET), SOCK_STREAM, SOL_TCP);
+		$this->set_socket_option(SO_REUSEADDR, 1);
 		$this->init();
-		$this->init_socket();
+		socket_bind($this->master_socket, $this->address, $this->port) or die();
+		socket_listen($this->master_socket, $this->max_clients);
+	}
+
+	public function set_socket_option($optname, $optval = null)
+	{
+		socket_set_option($this->master_socket, SOL_SOCKET, $optname, $optval);
+	}
+
+	public function get_socket_option($optname)
+	{
+		socket_get_option($this->master_socket, SOL_SOCKET, $optname);
 	}
 	
 	public function run()
@@ -166,14 +179,6 @@ class SocketServer
 	protected function init()
 	{
 
-	}
-
-	protected function init_socket()
-	{
-		$this->master_socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-		socket_set_option($this->master_socket, SOL_SOCKET, SO_REUSEADDR, 1);
-		socket_bind($this->master_socket, $this->address, $this->port) or die("This port is already used.\n");
-		socket_listen($this->master_socket, $this->max_clients);
 	}
 
 	protected function list_clients($prop = array(), $clients = NULL)

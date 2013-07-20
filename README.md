@@ -34,19 +34,30 @@ Demos included
 -------------------------
 <table>
 	<tr>
-		<th>Hello world ! server</th>
-		<th>Administrator control panel</th>
-		<th>Basic Chat server</th>
+		<th>2D RPG</th>
+		<th>Basic Chat</th>
 	</tr>
 	<tr>
 		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-helloworld.gif" width="210">
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-game.jpg" width="333">
 		</td>
 		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-admin.gif" width="210">
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-chat.gif" width="333">
+		</td>
+	</tr>
+</table>
+
+<table>
+	<tr>
+		<th>Hello world</th>
+		<th>Remote admin control panel</th>
+	</tr>
+	<tr>
+		<td>
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-helloworld.gif" width="333">
 		</td>
 		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-chat.gif" width="210">
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-admin.gif" width="333">
 		</td>
 	</tr>
 </table>
@@ -58,7 +69,7 @@ TODOs list
 - [x] Add a raw transport layer (raw_send()) for people who wants full control over optimisation
 - [x] Add possibility to create custom admin commands
 - [x] Add an helper to save and retrieve data in text files
-- [/] Create a simple game demo
+- [/] (in progress...) Create a simple game demo
 - [ ] Create a realtime website demo
 - [ ] Create an online radio
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
