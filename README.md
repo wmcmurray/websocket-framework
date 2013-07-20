@@ -1,4 +1,4 @@
-Websocket Framework v0.0.2
+Websocket Framework v0.0.3
 ======================================
 
 <img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/server.gif" width="300" align="right" title="Server cmd prompt">
@@ -22,7 +22,7 @@ Features
 * **Connected clients limit** to prevent your servers from exploding
 
 
-Ressources for developers
+Documentation
 -------------------------
 * [How to use : general](https://github.com/wmcmurray/websocket-framework/wiki/How-to-use)
 * [How to use : remote admin](https://github.com/wmcmurray/websocket-framework/wiki/Remote-admin)
@@ -34,44 +34,50 @@ Demos included
 -------------------------
 <table>
 	<tr>
-		<th>2D RPG</th>
-		<th>Basic Chat</th>
+		<th>
+			<h3>"Realtime" 2D Game</h3>
+		</th>
 	</tr>
 	<tr>
 		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/dev/screenshots/demo-game.jpg" width="333">
-		</td>
-		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-chat.gif" width="333">
+			
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/dev/screenshots/demo-game.jpg" width="694">
+			<ul>
+				<li>Players state are kept on the server, only keyboard events data are sent</li>
+				<li>Client-side movements anticipation</li>
+				<li>Players state can be saved in text files (JSON format)</li>
+			</ul>
 		</td>
 	</tr>
 </table>
 
 <table>
 	<tr>
-		<th>Hello world</th>
+		<th>"Realtime" Chat</th>
 		<th>Remote admin control panel</th>
+		<th>Hello world</th>
 	</tr>
 	<tr>
 		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-helloworld.gif" width="333">
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-chat.gif" width="213">
 		</td>
 		<td>
-			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-admin.gif" width="333">
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-admin.gif" width="213">
+		</td>
+		<td>
+			<img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/demo-helloworld.gif" width="213">
 		</td>
 	</tr>
 </table>
 
 TODOs list
 -------------------------
-- [x] Create an Admin Control Panel demo
-- [x] Create an Hello World demo
 - [x] Add a raw transport layer (raw_send()) for people who wants full control over optimisation
 - [x] Add possibility to create custom admin commands
 - [x] Add an helper to save and retrieve data in text files
-- [/] Create a simple game demo
+- [/] Create a 2D game demo <strong>(in progress...)</strong>
 - [ ] Create a realtime website demo
-- [ ] Create an online radio
+- [ ] Create an online radio demo
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
 - [ ] Add a way to ban a client definitively with the Admin API
 
