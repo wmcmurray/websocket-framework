@@ -152,6 +152,7 @@ Character.prototype.jump = function()
 			jQuery(this.view.sprite).animate({top: "0px"}, 400, jQuery.proxy(function()
 			{
 				this.is_jumping = false;
+				this.animate();
 			}, this));
 		}, this));
 	}
@@ -196,6 +197,21 @@ Character.prototype.animate = function()
 			{
 				this.anim_frame++;
 			}
+
+			// add footprint
+			var footprint = document.createElement("img");
+			footprint.className = "footprint";
+			footprint.src = "images/footprint.png";
+			footprint.style.left = Number(this.view.style.left.replace("px", "")) + (this.width * 0.5) + (this.anim_frame%2 && this.props.direction[1] ? -10 : 0) + "px";
+			footprint.style.top = Number(this.view.style.top.replace("px", "")) + (this.height) + (this.anim_frame%2 && this.props.direction[0] ? (this.props.direction[1] == this.props.direction[0] ? 10 : -10) : 0) + "px";
+			this.parent.appendChild(footprint);
+
+			setTimeout(function(){
+				jQuery(footprint).animate({opacity: 0}, 1000, function(){
+					this.parentNode.removeChild(this);
+				});
+			}, 10000)
+			
 		}
 		else
 		{

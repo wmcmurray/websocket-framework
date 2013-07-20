@@ -35,6 +35,11 @@ body
 	background: #aaa url(images/tile-grass.jpg);
 }
 
+#demo #scene #map .footprint
+{
+	position: absolute;
+}
+
 #demo #scene .character
 {
 	position: absolute;
@@ -116,7 +121,7 @@ body
 #demo #scene .character .bubble
 {
 	text-shadow: #000 0px 0px 2px;
-	
+
 	position: absolute;
 	bottom: 150%;
 	left: -84px;

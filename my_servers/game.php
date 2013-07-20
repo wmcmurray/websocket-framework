@@ -205,8 +205,8 @@ class Game_SocketServer extends SocketServer
         return 
         array(
             "skin"          => "hero" . rand(1, 13),
-            "x"             => 100,
-            "y"             => 100,
+            "x"             => 1000,
+            "y"             => 1000,
             "speed"         => 200,
             "keys"          => $keystates,
             "direction"     => array(0,0),
