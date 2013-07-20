@@ -21,7 +21,9 @@ Character.prototype.init = function()
 {
 	this.view = document.createElement("div");
 	this.view.className = "character";
-	this.view.innerHTML = '<span class="shadow"></span>';
+
+	this.view.shadow = document.createElement("span");
+	this.view.shadow.className = "shadow";
 
 	this.view.sprite = document.createElement("div");
 	this.view.sprite.className = "sprite";
@@ -34,6 +36,7 @@ Character.prototype.init = function()
 	this.view.coord.className = "coord";
 
 	this.view.sprite.appendChild(this.view.username);
+	this.view.appendChild(this.view.shadow);
 	this.view.appendChild(this.view.coord);
 	this.view.appendChild(this.view.sprite);
 
@@ -70,7 +73,7 @@ Character.prototype.sync = function(props)
 		}
 
 		this.anim_interval = setInterval(jQuery.proxy(this.animate, this), 1000 / (this.props.speed / 20));
-		//this.anim_interval = setInterval(jQuery.proxy(this.animate, this), 200);
+		this.animate();
 	}
 
 	this.refresh();
@@ -136,6 +139,13 @@ Character.prototype.jump = function()
 		this.is_jumping = true;
 		this.anim_frame = Math.random() < 0.5 ? 2 : 4;
 
+		// anim shadow
+		jQuery(this.view.shadow).stop().animate({opacity: 0.25}, 500, function()
+			{
+				jQuery(this).animate({opacity: 1}, 400);
+			});
+
+		// anim sprite
 		jQuery(this.view.sprite).stop().animate({top: -this.height + "px"}, 500,
 		jQuery.proxy(function()
 		{

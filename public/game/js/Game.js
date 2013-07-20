@@ -131,7 +131,7 @@ function Game(address, port)
 	// create our character and set all events listeners needed for interactions
 	this.init_hero = function()
 	{
-		this.hero = new Character(prompt("Enter a player name :", ""), this.map);
+		this.hero = new Character(prompt("Enter a player name :", "guest"), this.map);
 		this.hero.change_displayed_username("<strong>ME</strong>");
 		this.hero.on("refresh", jQuery.proxy(this.update_camera, this))
 
@@ -216,7 +216,10 @@ function Game(address, port)
 			case 68 : case 39 : return "d"; break;
 			case 32 : return "space"; break;
 			case 13 : return "enter"; break;
+			case 16 : return "shift"; break;
 			case 69 : return "e"; break;
+			case 81 : return "q"; break;
+			case 84 : return "t"; break;
 			default : return false; break;
 		}
 	}
@@ -230,8 +233,6 @@ function Game(address, port)
 		var mapH = jQuery(this.map).height();
 		var heroW = this.hero ? jQuery(this.hero.view).width() : 0;
 		var heroH = this.hero ? jQuery(this.hero.view).height() : 0;
-		//var heroL = this.hero ? Number(this.hero.view.style.left.replace("px", "")) : 0;
-		//var heroT = this.hero ? Number(this.hero.view.style.top.replace("px", "")) : 0;
 		var heroL = this.hero ? this.hero.props.x : 0;
 		var heroT = this.hero ? this.hero.props.y : 0;
 		var mapTopMax = -(mapH - sceneH);

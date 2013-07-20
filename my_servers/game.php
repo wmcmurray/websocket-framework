@@ -14,7 +14,7 @@ class Game_SocketServer extends SocketServer
     {
         $this->set_server_name("Simple Game Server");
         $this->set_tick_interval(10);
-        $this->recognized_keys = array("w", "a", "s", "d", "space", "enter", "e");
+        $this->recognized_keys = array("w", "a", "s", "d", "space", "enter", "shift", "e", "q", "t");
 
         // create dirs (if they don't exists) to save game players data
         $this->fm = new FilesManager();
@@ -98,17 +98,26 @@ class Game_SocketServer extends SocketServer
                 // calculate client position
                 $this->update_client($client);
                 
-                // change client direction after key event
-                $props = $client->get(array("keys", "direction"));
-                $props["keys"][$data->key] = $data->type == "keydown" ? true : false;
-                $props["direction"][0] = ($props["keys"]["a"] ? -1 : 0) + ($props["keys"]["d"] ? 1 : 0);
-                $props["direction"][1] = ($props["keys"]["w"] ? -1 : 0) + ($props["keys"]["s"] ? 1 : 0);
-                $client->set($props);
+                // if shift key, change client movement speed
+                if($data->key == "shift")
+                {
+                    $client->set(array("speed" => $data->type == "keydown" ? 300 : 200));
+                }
+
+                // if one of the movement keys, update player direction
+                else if(in_array($data->key, array("w", "a", "s", "d")))
+                {
+                    $props = $client->get(array("keys", "direction"));
+                    $props["keys"][$data->key] = $data->type == "keydown" ? true : false;
+                    $props["direction"][0] = ($props["keys"]["a"] ? -1 : 0) + ($props["keys"]["d"] ? 1 : 0);
+                    $props["direction"][1] = ($props["keys"]["w"] ? -1 : 0) + ($props["keys"]["s"] ? 1 : 0);
+                    $client->set($props);
+                }
 
                 // syncronize client with server
                 $this->sync_client($client);
 
-                // broadcast key event to other connected clients
+                // broadcast key event result to other connected clients
                 $this->send_to_others($client, "player_update", array("id" => $client->id, "props" => $client->get(array("x", "y", "speed", "direction"))));
             }
         }
