@@ -203,7 +203,7 @@ Character.prototype.animate = function()
 			footprint.className = "footprint";
 			footprint.src = "images/footprint.png";
 			footprint.style.left = Number(this.view.style.left.replace("px", "")) + (this.width * 0.5) + (this.anim_frame%2 && this.props.direction[1] ? -10 : 0) + "px";
-			footprint.style.top = Number(this.view.style.top.replace("px", "")) + (this.height) + (this.anim_frame%2 && this.props.direction[0] ? (this.props.direction[1] == this.props.direction[0] ? 10 : -10) : 0) + "px";
+			footprint.style.top = Number(this.view.style.top.replace("px", "")) + (this.height) + (this.anim_frame%2 && this.props.direction[0] ? (this.props.direction[1] == this.props.direction[0] ? 5 : -5) : 0) -5 + "px";
 			this.parent.appendChild(footprint);
 
 			setTimeout(function(){
