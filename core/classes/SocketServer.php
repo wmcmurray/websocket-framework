@@ -5,8 +5,9 @@ class SocketServer
 	private $server_name 	= "SERVER"; // default server name
 	private $admin_password = "root";	// default admin password
 	private $max_clients 	= 1000;		// default connected clients limit
-	private $version 		= "0.0.2";	// server version
+	private $version 		= "0.0.3";	// server version
 	private $socket_select_timeout = 1;
+	private $socket_recv_len = 2048;
 	private $tick_interval = 1;
 	private $config = array();
 	private $clients = array();
@@ -78,7 +79,7 @@ class SocketServer
 					$client = $this->get_client_by_socket($socket);
 					if($client)
 					{
-						$bytes = @socket_recv($socket, $data, 2048, 0);
+						$bytes = socket_recv($socket, $data, $this->socket_recv_len, 0);
 						if(!$bytes || $bytes === 0)
 						{
 							$this->disconnect($client);
@@ -152,6 +153,11 @@ class SocketServer
 	public function set_socket_select_timeout($nb)
 	{
 		$this->socket_select_timeout = $nb;
+	}
+
+	public function set_socket_recv_len($nb = 2048)
+	{
+		$this->socket_recv_len = $nb;
 	}
 	
 	public function set_tick_interval($nb)
@@ -416,223 +422,297 @@ class SocketServer
 	
 	private function handle_data($client, $data)
 	{
-		$data = $this->unmask($data);
+		$data = $this->decode($data);
+
 		if(!$data)
 		{
 			return false;
 		}
-		$json = json_decode($data);
 
-		if($json && !is_int($json) && count((array)$json) == 2 && isset($json->content))
+		foreach($data as $k => $frame)
 		{
-			if(isset($json->action))
-			{
-				debug('Handling action "' . $json->action . '"...');
-				$this->exec_method("handle_" . $json->action, array($client, $json->content));
-			}
-			
-			else if(isset($json->sys))
-			{
-				$access_required = in_array($json->sys, array("login", "logout"));
-				$privileges_required = in_array($json->sys, $this->cmds_requiring_admin_privileges);
+			$json = json_decode($frame);
 
-				if($access_required && !REMOTE_ADMIN_ACCESS)
+			if($json && !is_int($json) && count((array)$json) == 2 && isset($json->content))
+			{
+				if(isset($json->action))
 				{
-					debug("Remote admin access isn't enabled. (-admin option)");
-					return false;
-				}
-
-				if(($privileges_required && $this->do_if_admin($client)) || !$privileges_required)
-				{
-					debug('Handling system command "' . $json->sys . '"...');
-				}
-				else
-				{
-					warning('client #' . $client->id . ' tried to execute "' . $json->sys . '".');
-					return false;
+					debug('Handling action "' . $json->action . '"...');
+					$this->exec_method("handle_" . $json->action, array($client, $json->content));
 				}
 				
-				switch($json->sys)
+				else if(isset($json->sys))
 				{
-					// ----------------------- public commands
-					case "exit":
-						$this->disconnect($client);
-					break;
-					case "ping_request":
-						$this->sys_send($client, "ping_response");
-					break;
-					case "ping_response":
-						if(isset($this->ping_requests_queue[$client->id]) && $json->content)
-						{
-							$ping = round((microtime(true) - $json->content) * 1000);
+					$access_required = in_array($json->sys, array("login", "logout"));
+					$privileges_required = in_array($json->sys, $this->cmds_requiring_admin_privileges);
 
-							foreach($this->ping_requests_queue[$client->id] as $k)
+					if($access_required && !REMOTE_ADMIN_ACCESS)
+					{
+						debug("Remote admin access isn't enabled. (-admin option)");
+						return false;
+					}
+
+					if(($privileges_required && $this->do_if_admin($client)) || !$privileges_required)
+					{
+						debug('Handling system command "' . $json->sys . '"...');
+					}
+					else
+					{
+						warning('client #' . $client->id . ' tried to execute "' . $json->sys . '".');
+						return false;
+					}
+					
+					switch($json->sys)
+					{
+						// ----------------------- public commands
+						case "exit":
+							$this->disconnect($client);
+						break;
+						case "ping_request":
+							$this->sys_send($client, "ping_response");
+						break;
+						case "ping_response":
+							if(isset($this->ping_requests_queue[$client->id]) && $json->content)
 							{
-								$asker = $this->get_client_by_id($k);
-								if($asker)
+								$ping = round((microtime(true) - $json->content) * 1000);
+
+								foreach($this->ping_requests_queue[$client->id] as $k)
 								{
-									$this->sys_send($asker, "alert", "Client #" . $client->id . " ping is " . $ping . " milliseconds.");
+									$asker = $this->get_client_by_id($k);
+									if($asker)
+									{
+										$this->sys_send($asker, "alert", "Client #" . $client->id . " ping is " . $ping . " milliseconds.");
+									}
 								}
+
+								unset($this->ping_requests_queue[$client->id]);
 							}
+						break;
 
-							unset($this->ping_requests_queue[$client->id]);
-						}
-					break;
-
-					// ----------------------- admin commands
-					case "login":
-						if($client->is_admin())
-						{
-							$this->sys_send($client, "alert", "You are already admin.");
-						}
-						else if($this->admin_password === $json->content)
-						{
-							$client->grant_admin();
-							$this->sys_send($client, "alert", "You are now admin.");
-						}
-						else
-						{
-							warning('client #' . $client->id . ' entered a wrong password in admin login.');
-							$this->sys_send($client, "alert", "Access denied.");
-						}
-					break;
-					case "logout":
-						if($client->is_admin())
-						{
-							$client->revoke_admin();
-							$this->sys_send($client, "alert", "Your admin privilege have been revoked.");
-						}
-						else
-						{
-							$this->sys_send($client, "alert", "You can't log out if you are not logged in.");
-						}
-					break;
-					case "kick":
-						$c = $this->get_client_by_id($json->content);
-						if($c)
-						{
-							if($client->id !== $json->content)
+						// ----------------------- admin commands
+						case "login":
+							if($client->is_admin())
 							{
-								$this->exec_method("on_client_kick", $c);
-								$this->disconnect($c);
+								$this->sys_send($client, "alert", "You are already admin.");
+							}
+							else if($this->admin_password === $json->content)
+							{
+								$client->grant_admin();
+								$this->sys_send($client, "alert", "You are now admin.");
 							}
 							else
 							{
-								$this->sys_send($client, "alert", "Kicking yourself is unfortunately impossible. (and stupid)");
+								warning('client #' . $client->id . ' entered a wrong password in admin login.');
+								$this->sys_send($client, "alert", "Access denied.");
 							}
-						}
-					break;
-					case "shutdown":
-						$this->is_running = false;
-					break;
-					case "reboot":
-						$this->sys_send_to_all("reboot");
-						$this->exec_method("on_server_reboot");
-						$this->reboot_on_shutdown = true;
-						$this->is_running = false;
-					break;
-					case "sleep":
-						$time = intval($json->content);
-						if($time > 0)
-						{
-							output("Zzzzzz for " . $time . " seconds...");
-							sleep($time);
-							output("Zzzzzz is over !");
-						}
-					break;
-					case "clients_count":
-						$this->sys_send($client, "alert", $this->get_clients_count() . " clients connected.");
-					break;
-					case "clients_list":
-						$output = "Clients list :";
-						foreach($this->clients as $k => $v)
-						{
-							$output .= "\n[" . $k . "] = " . $v->get_profile();
-						}
-						$this->sys_send($client, "alert", $output);
-					break;
-					case "ping_client":
-						$pinged = $this->get_client_by_id($json->content);
-						if($pinged)
-						{
-							if(!isset($this->ping_requests_queue[$pinged->id]))
+						break;
+						case "logout":
+							if($client->is_admin())
 							{
-								$this->ping_requests_queue[$pinged->id] = array();
-								$this->sys_send($pinged, "ping_request", microtime(true));
+								$client->revoke_admin();
+								$this->sys_send($client, "alert", "Your admin privilege have been revoked.");
 							}
-							array_push($this->ping_requests_queue[$pinged->id], $client->id);
-						}
-					break;
-					case "last_error":
-						ob_start();
-						print_r(error_get_last());
-						$err = ob_get_clean();
+							else
+							{
+								$this->sys_send($client, "alert", "You can't log out if you are not logged in.");
+							}
+						break;
+						case "kick":
+							$c = $this->get_client_by_id($json->content);
+							if($c)
+							{
+								if($client->id !== $json->content)
+								{
+									$this->exec_method("on_client_kick", $c);
+									$this->disconnect($c);
+								}
+								else
+								{
+									$this->sys_send($client, "alert", "Kicking yourself is unfortunately impossible. (and stupid)");
+								}
+							}
+						break;
+						case "shutdown":
+							$this->is_running = false;
+						break;
+						case "reboot":
+							$this->sys_send_to_all("reboot");
+							$this->exec_method("on_server_reboot");
+							$this->reboot_on_shutdown = true;
+							$this->is_running = false;
+						break;
+						case "sleep":
+							$time = intval($json->content);
+							if($time > 0)
+							{
+								output("Zzzzzz for " . $time . " seconds...");
+								sleep($time);
+								output("Zzzzzz is over !");
+							}
+						break;
+						case "clients_count":
+							$this->sys_send($client, "alert", $this->get_clients_count() . " clients connected.");
+						break;
+						case "clients_list":
+							$output = "Clients list :";
+							foreach($this->clients as $k => $v)
+							{
+								$output .= "\n[" . $k . "] = " . $v->get_profile();
+							}
+							$this->sys_send($client, "alert", $output);
+						break;
+						case "ping_client":
+							$pinged = $this->get_client_by_id($json->content);
+							if($pinged)
+							{
+								if(!isset($this->ping_requests_queue[$pinged->id]))
+								{
+									$this->ping_requests_queue[$pinged->id] = array();
+									$this->sys_send($pinged, "ping_request", microtime(true));
+								}
+								array_push($this->ping_requests_queue[$pinged->id], $client->id);
+							}
+						break;
+						case "last_error":
+							ob_start();
+							print_r(error_get_last());
+							$err = ob_get_clean();
 
-						$this->sys_send($client, "alert", $err != "" ? $err : "No last error.");
-					break;
-					case "options":
-						$this->sys_send($client, "alert", SCRIPT_OPTIONS);
-					break;
+							$this->sys_send($client, "alert", $err != "" ? $err : "No last error.");
+						break;
+						case "options":
+							$this->sys_send($client, "alert", SCRIPT_OPTIONS);
+						break;
 
-					// ----------------------- custom commands
-					default:
-						$this->exec_method("sys_handle_" . $json->sys, array($client, $json->content));
-					break;
+						// ----------------------- custom commands
+						default:
+							$this->exec_method("sys_handle_" . $json->sys, array($client, $json->content));
+						break;
+					}
 				}
 			}
-		}
-		else
-		{
-			$len = strlen($data);
-
-			// detect the connection close bytes
-			if($len == 2)
+			else
 			{
-				$data_bytes = "";
-				for($i = 0; $i < $len; $i++)
+				$len = strlen($frame);
+
+				// detect the connection close bytes
+				if($len == 2)
 				{
-				   $data_bytes += ord($data[$i]);
+					$data_bytes = "";
+					for($i = 0; $i < $len; $i++)
+					{
+					   $data_bytes += ord($frame[$i]);
+					}
+					
+					if($data_bytes == 236)
+					{
+						$this->disconnect($client);
+						return true;
+					}
 				}
 				
-				if($data_bytes == 236)
-				{
-					$this->disconnect($client);
-					return true;
-				}
+				// if not the closing bytes, handle data as raw data
+				$this->exec_method("raw_handle", array($client, $frame));
+				return true;
 			}
-			
-			// if not the closing bytes, handle data as raw data
-			$this->exec_method("raw_handle", array($client, $data));
-			return true;
 		}
 	}
 	
-	private function unmask($payload)
+	private function decode($payload)
 	{
-		$length = ord($payload[1]) & 127;
-		if($length == 126)
+		$output = array();
+		$done = false;
+
+		if(isset($this->incomplete_message))
 		{
-			$masks = substr($payload, 4, 4);
-			$data = substr($payload, 8);
+			$payload = $this->incomplete_message . $payload;
+			unset($this->incomplete_message);
 		}
-		elseif($length == 127)
+
+		do
 		{
-			$masks = substr($payload, 10, 4);
-			$data = substr($payload, 14);
+			$length = ord($payload[1]) & 127;
+
+			if($length == 126)
+			{
+				$mask = substr($payload, 4, 4);
+				$data = substr($payload, 8);
+				$length = $this->get_playload_length($payload, 3);
+			}
+			else if($length == 127)
+			{
+				$mask = substr($payload, 10, 4);
+				$data = substr($payload, 14);
+				$length = $this->get_playload_length($payload, 9);
+			}
+			else
+			{
+				$mask = substr($payload, 2, 4);
+				$data = substr($payload, 6);
+			}
+			
+			$data_length = strlen($data);
+			$unmasked = $this->unmask($data, $length, $mask);
+			$text = $unmasked[0];
+			$overflow = $unmasked[1];
+
+			if($data_length > $length && $length != 0)
+			{
+				$payload = $overflow;
+			}
+			else
+			{
+				$done = true;
+			}
+
+			array_push($output, $text);
 		}
-		else
+		while(!$done);
+
+		$last_message_len = strlen($output[count($output) -1]);
+
+		if($length > $last_message_len)
 		{
-			$masks = substr($payload, 2, 4);
-			$data = substr($payload, 6);
+			$this->incomplete_message = $payload;
+			array_pop($output);
 		}
-		
+
+		return $output;
+	}
+
+	private function unmask($data, $length, $mask)
+	{
 		$data_length = strlen($data);
 		$text = '';
+		$overflow = '';
+
 		for($i = 0; $i < $data_length; ++$i)
 		{
-			$text .= $data[$i] ^ $masks[$i % 4];
+			if($i < $length)
+			{
+				$text .= $data[$i] ^ $mask[$i % 4];
+			}
+			else
+			{
+				$overflow .= $data[$i];
+			}
 		}
-		return $text;
+
+		return array($text, $overflow);
+	}
+
+	private function get_playload_length($payload, $end)
+	{
+		$start = 2;
+		$length = 0;
+
+        for ($i = $start; $i <= $end; $i++)
+        {
+            $length <<= 8;
+            $length += ord($payload[$i]);
+        }
+
+        return $length;
 	}
 	
 	private function encode($text)
@@ -649,11 +729,11 @@ class SocketServer
 		{
 			$header = pack('CC', $b1, $length);
 		}
-		elseif($length > 125 && $length < 65536)
+		else if($length > 125 && $length < 65536)
 		{
 			$header = pack('CCn', $b1, 126, $length);
 		}
-		elseif($length >= 65536)
+		else if($length >= 65536)
 		{
 			$header = pack('CCN', $b1, 127, $length);
 		}
