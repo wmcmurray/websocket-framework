@@ -77,9 +77,16 @@ function Game(address, port)
 						this.loop();
 					}
 
+					// add all already present players
 					for(var id in data.content.initial_sync.players_list)
 					{
 						this.insert_player(id, data.content.initial_sync.players_list[id]);
+					}
+
+					// add all already present NPCs
+					for(var id in data.content.initial_sync.npcs_list)
+					{
+						this.insert_player(id, data.content.initial_sync.npcs_list[id]);
 					}
 				}
 				else

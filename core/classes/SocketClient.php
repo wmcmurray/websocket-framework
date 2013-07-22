@@ -17,6 +17,10 @@ class SocketClient
 		{
 			$this->socket = $socket;
 		}
+		else
+		{
+			$this->id = uniqid();
+		}
 	}
 	
 	public function set($prop = "", $value = "")
@@ -65,6 +69,11 @@ class SocketClient
 	public function is_handshaked()
 	{
 		return $this->is_handshaked;
+	}
+
+	public function is_npc()
+	{
+		return is_null($this->socket) ? true : false;
 	}
 
 	public function handshake()

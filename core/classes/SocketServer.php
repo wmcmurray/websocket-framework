@@ -179,6 +179,13 @@ class SocketServer
 			array_push($this->cmds_requiring_admin_privileges, $cmd);
 		}
 	}
+
+	public function create_client($socket = NULL)
+	{
+		$client = new SocketClient($socket);
+		$this->add_client($client);
+		return $client;
+	}
 	
 	// PROTECTED
 	//==========================================================
@@ -249,6 +256,23 @@ class SocketServer
 		}
 		return $b;
 	}
+
+    // return an array of all NPCs (clients without socket)
+    protected function get_npcs()
+    {
+        $clients = $this->get_clients();
+        $npcs = array();
+
+        foreach($clients as $client)
+        {
+            if($client->is_npc())
+            {
+                array_push($npcs, $client);
+            }
+        }
+
+        return $npcs;
+    }
 	
 	protected function send($client, $action = "", $content = NULL)
 	{
@@ -305,9 +329,12 @@ class SocketServer
 	protected function disconnect($client)
 	{
 		$this->exec_method("on_client_disconnect", array($client));
-		output("disconnected client #" . $client->id);
-		@socket_shutdown($client->socket, 2);
-		@socket_close($client->socket);
+		if(!$client->is_npc())
+		{
+			output("disconnected client #" . $client->id);
+			@socket_shutdown($client->socket, 2);
+			@socket_close($client->socket);
+		}
 		$this->remove_client($client);
 	}
 	
@@ -315,10 +342,13 @@ class SocketServer
 	//==========================================================
 	private function write($socket, $data)
 	{
-		$data = $this->encode($data);
-		if(!@socket_write($socket, $data, strlen($data)))
+		if(!is_null($socket))
 		{
-			$this->disconnect($this->get_client_by_socket($socket));
+			$data = $this->encode($data);
+			if(!@socket_write($socket, $data, strlen($data)))
+			{
+				$this->disconnect($this->get_client_by_socket($socket));
+			}
 		}
 	}
 
@@ -811,8 +841,7 @@ class SocketServer
 	{
 		if($this->get_clients_count() < $this->max_clients || $this->max_clients === 0)
 		{
-			$client = new SocketClient($socket);
-			$this->add_client($client);
+			$client = $this->create_client($socket);
 			$this->exec_method("on_client_connect", array($client));
 			output("A client is connecting...");
 			return $client;

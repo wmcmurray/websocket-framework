@@ -45,6 +45,9 @@
         <a href="javascript:void(0);" class="btn" onclick="client.socket.sys_send('login','root');">login</a>
         <a href="javascript:void(0);" class="btn" onclick="client.socket.sys_send('reboot');">reboot server</a>
         <a href="javascript:void(0);" class="btn" onclick="client.socket.send('teleport', {x: jQuery(client.map).width() * 0.5, y: jQuery(client.map).height() * 0.5});">teleport center</a>
+        <a href="javascript:void(0);" class="btn" onclick="client.socket.send('create_npc');">+1 NPC</a>
+        <a href="javascript:void(0);" class="btn" onclick="client.socket.send('kill_npcs');">KILL NPCs</a>
+        <a href="javascript:void(0);" class="btn" onclick="client.socket.send('attract_npcs', confirm('Do you want to attract all NPCs ?'));">Attract NPCs</a>
 
         <div style="float:right;">
             <a href="javascript:void(0);" class="btn active" id="tile-grass" onclick="jQuery('#map').css('background-image', 'url(images/tile-grass.jpg)'); this.className='btn active'; jQuery('#tile-sand').removeClass('active');">Grass</a>
