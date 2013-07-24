@@ -21,10 +21,17 @@ class Game_SocketServer extends SocketServer
         $this->fm->make_dir("game/players/");
 
         // create some NPCs at the begining
+        // cats in grass world
         for($i = 1; $i <= 3; $i++)
         {
-            $this->create_npc();
+            $this->create_npc()->set_group("grass");
         }
+
+        // a cool dude in grass world
+        $this->create_npc("hero13")->set(array("username" => "Paladin NPC"))->set_group("grass");
+
+        // a cool dude in desert
+        $this->create_npc("hero10")->set(array("username" => "Badass NPC"))->set_group("sand");
     }
 
 
@@ -59,7 +66,7 @@ class Game_SocketServer extends SocketServer
 
         $this->update_client($client);
         $this->save_client_state($client);
-        $this->send_to_others($client, "player_quit", $client->id);
+        $this->send_to_others_in_group($client, "player_quit", $client->id);
     }
 
 
@@ -92,8 +99,9 @@ class Game_SocketServer extends SocketServer
             }
             
             $client->set($initial_state);
+            $client->set_group($client->get("area") ? $client->get("area") : "grass");
             $this->sync_client($client, true);
-            $this->send_to_others($client, "new_player", array("id" => $client->id, "props" => $client->get(array("username", "skin", "x", "y", "speed", "direction"))));
+            $this->send_new_player($client);
         }
     }
 
@@ -104,7 +112,7 @@ class Game_SocketServer extends SocketServer
         {
             if($data->key == "space" && $data->type == "keydown")
             {
-                $this->send_to_others($client, "player_action", array("id" => $client->id, "action" => "jump"));
+                $this->send_to_others_in_group($client, "player_action", array("id" => $client->id, "action" => "jump"));
             }
             else
             {
@@ -131,7 +139,7 @@ class Game_SocketServer extends SocketServer
                 $this->sync_client($client);
 
                 // broadcast key event result to other connected clients
-                $this->send_to_others($client, "player_update", array("id" => $client->id, "props" => $client->get(array("x", "y", "speed", "direction"))));
+                $this->send_to_others_in_group($client, "player_update", array("id" => $client->id, "props" => $client->get(array("x", "y", "speed", "direction"))));
             }
         }
     }
@@ -143,20 +151,21 @@ class Game_SocketServer extends SocketServer
         $client->set("y", $data->y);
         $client->set("last_update", microtime(true));
         $this->send($client, "teleport", array("x" => $data->x, "y" => $data->y));
-        $this->send_to_others($client, "player_teleport", array("id" => $client->id, "props" => $client->get(array("x", "y"))));
+        $this->send_to_others_in_group($client, "player_teleport", array("id" => $client->id, "props" => $client->get(array("x", "y"))));
     }
 
     protected function handle_talk($client, $data)
     {
-        $this->send_to_others($client, "player_action", array("id" => $client->id, "action" => "talk", "msg" => $data));
+        $this->send_to_others_in_group($client, "player_action", array("id" => $client->id, "action" => "talk", "msg" => $data));
     }
 
     protected function handle_create_npc($client, $data)
     {
-        $npc = $this->create_npc();
+        $npc = $this->create_npc($data ? $data : "npc1");
+        $npc->set_group($client->get_group());
         $this->update_client($client);
         $npc->set($client->get(array("x", "y")));
-        $this->send_to_others($npc, "new_player", array("id" => $npc->id, "props" => $npc->get(array("username", "skin", "x", "y", "speed", "direction"))));
+        $this->send_new_player($npc);
     }
 
     protected function handle_kill_npcs($client, $data)
@@ -164,7 +173,10 @@ class Game_SocketServer extends SocketServer
         $npcs = $this->get_npcs();
         foreach($npcs as $npc)
         {
-            $this->disconnect($npc);
+            if($npc->in_group($client->get_group()))
+            {
+                $this->disconnect($npc);
+            }
         }
     }
 
@@ -173,6 +185,15 @@ class Game_SocketServer extends SocketServer
         $this->npcs_candy = $data ? $client : false;
         $this->update_npcs(true);
     }
+
+    protected function handle_change_area($client, $data)
+    {
+        $this->send_to_others_in_group($client, "player_quit", $client->id);
+        $client->set_group($data)->set(array("area" => $data));
+        $this->send_new_player($client);
+        $this->send_players_list($client);
+    }
+    
 
 
     // OTHER METHODS
@@ -200,15 +221,27 @@ class Game_SocketServer extends SocketServer
             $initial_sync_props = array(
                 "props"         => $props,
                 "skin"          => $client->get("skin"),
-                "players_list"  => $this->list_clients(array("username", "skin", "x", "y", "speed", "direction"), $this->get_clients($client))
+                "area"          => $client->get("area"),
             );
 
             $this->send($client, "sync", array("initial_sync" => $initial_sync_props));
+            $this->send_players_list($client);
         }
         else
         {
             $this->send($client, "sync", $props);
         }
+    }
+
+    // send a list of all players in this area to a client
+    protected function send_players_list($client)
+    {
+        $this->send($client, "players_list", $this->list_clients(array("username", "skin", "x", "y", "speed", "direction"), $this->get_clients_from_group($client->get_group(), $client)));
+    }
+
+    protected function send_new_player($client)
+    {
+        $this->send_to_others_in_group($client, "new_player", array("id" => $client->id, "props" => $client->get(array("username", "skin", "x", "y", "speed", "direction"))));
     }
 
     // save client data in a text file
@@ -254,9 +287,9 @@ class Game_SocketServer extends SocketServer
     }
 
     // creates an NPC
-    protected function create_npc()
+    protected function create_npc($skin = "npc1")
     {
-        $initial_npc_state = $this->create_initial_character_state("npc1");
+        $initial_npc_state = $this->create_initial_character_state($skin);
         $initial_npc_state["speed"] = rand(15, 50);
 
         $npc = $this->create_client();
@@ -275,7 +308,7 @@ class Game_SocketServer extends SocketServer
             $this->update_client($npc);
             
             // follow the player "candy"
-            if(isset($this->npcs_candy) && $this->npcs_candy)
+            if(isset($this->npcs_candy) && $this->npcs_candy && $this->npcs_candy->get_group() == $npc->get_group())
             {
                 $props = $npc->get(array("x", "y"));
                 $candy = $this->npcs_candy->get(array("x", "y", "username"));
@@ -284,19 +317,19 @@ class Game_SocketServer extends SocketServer
                 $directionY = ($props["y"] > $candy["y"] ? -1 : 1);
                 $npc->set(array("direction" => array($directionX, $directionY), "speed" => rand(100, 180)));
 
-                $this->send_to_others($npc, "player_update", array("id" => $npc->id, "props" => $npc->get(array("x", "y", "speed", "direction"))));
+                $this->send_to_others_in_group($npc, "player_update", array("id" => $npc->id, "props" => $npc->get(array("x", "y", "speed", "direction"))));
                 
                 // they may scream
                 if(rand(0,4) == 1)
                 {
                     $msgs = array("Come here ".$candy["username"]." !!", "I'll get ya ".$candy["username"]." !!", "Get himm !!!");
-                    $this->send_to_others($npc, "player_action", array("id" => $npc->id, "action" => "talk", "msg" => $msgs[rand(0, count($msgs) -1)]));
+                    $this->send_to_others_in_group($npc, "player_action", array("id" => $npc->id, "action" => "talk", "msg" => $msgs[rand(0, count($msgs) -1)]));
                 }
 
                 // and they may jump
                 if(rand(0,2) == 1)
                 {
-                    $this->send_to_others($npc, "player_action", array("id" => $npc->id, "action" => "jump"));
+                    $this->send_to_others_in_group($npc, "player_action", array("id" => $npc->id, "action" => "jump"));
                 }
             }
 
@@ -304,25 +337,33 @@ class Game_SocketServer extends SocketServer
             else if(rand(0,3) == 1 || $all)
             {
                 // random direction OR forced direction if NPC go too far from map center
-                $props = $npc->get(array("x", "y"));
+                $props = $npc->get(array("x", "y", "skin"));
                 $directionX = ($props["x"] >= 1500 ? -1 : ($props["x"] <= 500 ? 1 : rand(-1, 1) ) );
                 $directionY = ($props["y"] >= 1500 ? -1 : ($props["y"] <= 500 ? 1 : rand(-1, 1) ) );
                 $npc->set(array("direction" => array($directionX, $directionY), "speed" => rand(15, 75)));
 
-                $this->send_to_others($npc, "player_update", array("id" => $npc->id, "props" => $npc->get(array("x", "y", "speed", "direction"))));
+                $this->send_to_others_in_group($npc, "player_update", array("id" => $npc->id, "props" => $npc->get(array("x", "y", "speed", "direction"))));
                 
                 // 1 chance out of five that it will talk
                 if(rand(0,5) == 1)
                 {
-                    $msgs = array("Miaow", "Where is that damn mouse...", "I love being dumb.", "=^.^=", "I'm a cat", "-_-", "Pet me, please", "Websockets are awesome");
-                    $this->send_to_others($npc, "player_action", array("id" => $npc->id, "action" => "talk", "msg" => $msgs[rand(0, count($msgs) -1)]));
+                    if($props["skin"] == "npc1")
+                    {
+                        $msgs = array("Miaow", "Where is that damn mouse...", "I love being dumb.", "=^.^=", "I'm a cat", "-_-", "Pet me, please", "Websockets are awesome");
+                    }
+                    else
+                    {
+                        $msgs = array("Websockets are awesome", "Humm...", "Arggggh !", "This game got nice graphics.", "Walking is so amazing");
+                    }
+                    
+                    $this->send_to_others_in_group($npc, "player_action", array("id" => $npc->id, "action" => "talk", "msg" => $msgs[rand(0, count($msgs) -1)]));
                 }
 
                 // else... 1 chance out of five that it will jump (and talk)
                 else if(rand(0,5) == 1)
                 {
-                    $this->send_to_others($npc, "player_action", array("id" => $npc->id, "action" => "jump"));
-                    $this->send_to_others($npc, "player_action", array("id" => $npc->id, "action" => "talk", "msg" => "Bounce !"));
+                    $this->send_to_others_in_group($npc, "player_action", array("id" => $npc->id, "action" => "jump"));
+                    $this->send_to_others_in_group($npc, "player_action", array("id" => $npc->id, "action" => "talk", "msg" => "Bounce !"));
                 }
             }
         }

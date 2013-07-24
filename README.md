@@ -35,7 +35,7 @@ Demos included
 <table>
 	<tr>
 		<th>
-			<h3>"Realtime" 2D Game</h3>
+			<h3>Realtime 2D Game</h3>
 		</th>
 	</tr>
 	<tr>
@@ -44,8 +44,10 @@ Demos included
 			<img src="https://raw.github.com/wmcmurray/websocket-framework/dev/screenshots/demo-game.jpg" width="694">
 			<ul>
 				<li>Players state are kept on the server, only keyboard events data are sent</li>
-				<li>Client-side movements anticipation</li>
+				<li>Client-side movements predictions</li>
 				<li>Simple in-game chat</li>
+				<li>NPCs with a very basic AI</li>
+				<li>Support for different areas with different players inside</li>
 				<li>Players state can be saved in text files (JSON format)</li>
 			</ul>
 		</td>
@@ -54,7 +56,7 @@ Demos included
 
 <table>
 	<tr>
-		<th>"Realtime" Chat</th>
+		<th>Realtime Chat</th>
 		<th>Remote admin control panel</th>
 		<th>Hello world</th>
 	</tr>

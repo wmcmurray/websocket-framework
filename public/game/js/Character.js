@@ -284,9 +284,7 @@ Character.prototype.disappear = function(instantly)
 	}
 	else
 	{
-		var view = this.view;
-		var parent = this.parent;
-		jQuery(this.view).stop().animate({opacity: 0}, 1000, function(){ parent.removeChild(view); });
+		jQuery(this.view).stop().animate({opacity: 0}, 1000, function(){ this.parentNode.removeChild(this); });
 	}
 	
 	return this;

@@ -77,21 +77,29 @@ function Game(address, port)
 						this.loop();
 					}
 
-					// add all already present players
-					for(var id in data.content.initial_sync.players_list)
+					if(data.content.initial_sync.area)
 					{
-						this.insert_player(id, data.content.initial_sync.players_list[id]);
-					}
-
-					// add all already present NPCs
-					for(var id in data.content.initial_sync.npcs_list)
-					{
-						this.insert_player(id, data.content.initial_sync.npcs_list[id]);
+						areasButtons.parent().find("a[data-area='" + data.content.initial_sync.area + "']").trigger("click");
 					}
 				}
 				else
 				{
 					this.hero.sync(data.content);
+				}
+			break;
+
+			// when we receives a list of players
+			case "players_list" :
+				// delete old ones
+				for(var id in this.players)
+				{
+					this.remove_player(id);
+				}
+
+				// add new players
+				for(var id in data.content)
+				{
+					this.insert_player(id, data.content[id]);
 				}
 			break;
 
@@ -109,27 +117,36 @@ function Game(address, port)
 
 			// triggered when an other player position change
 			case "player_update" :
-				this.players[data.content.id].sync(data.content.props);
+				if(this.players[data.content.id])
+				{
+					this.players[data.content.id].sync(data.content.props);
+				}
 			break;
 
 			// triggered when an other player perform an action that we should know about
 			case "player_action" :
-				switch(data.content.action)
+				if(this.players[data.content.id])
 				{
-					case "jump" :
-						this.players[data.content.id].jump();
-					break;
+					switch(data.content.action)
+					{
+						case "jump" :
+							this.players[data.content.id].jump();
+						break;
 
-					case "talk" :
-						this.players[data.content.id].talk(data.content.msg);
-					break;
+						case "talk" :
+							this.players[data.content.id].talk(data.content.msg);
+						break;
+					}
 				}
 			break;
 
 			// triggered when an other player teleport
 			case "player_teleport" :
-				this.players[data.content.id].teleport(data.content.props.x, data.content.props.y);
-				this.players[data.content.id].sync(data.content.props);
+				if(this.players[data.content.id])
+				{
+					this.players[data.content.id].teleport(data.content.props.x, data.content.props.y);
+					this.players[data.content.id].sync(data.content.props);
+				}
 			break;
 
 			// triggered when a player quit the game

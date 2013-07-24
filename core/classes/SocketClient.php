@@ -36,6 +36,8 @@ class SocketClient
 		{
 			$this->props[$prop] = $value;
 		}
+
+		return $this;
 	}
 	
 	public function get($prop = null)
@@ -79,32 +81,38 @@ class SocketClient
 	public function handshake()
 	{
 		$this->is_handshaked = true;
+
+		return $this;
 	}
 	
 	public function grant_admin()
 	{
 		$this->is_admin = true;
 		output("#" . $this->id . " became admin.");
+
+		return $this;
 	}
 	
 	public function revoke_admin()
 	{
 		$this->is_admin = false;
 		output("#" . $this->id . " is no longer admin.");
+
+		return $this;
 	}
 	
 	public function set_group($name = "")
 	{
-		$this->groups = $name;
+		$this->groups = is_array($name) ? $name : array($name);
+
+		return $this;
 	}
 	
 	public function join_group($name = "")
 	{
-		if(!is_array($this->groups))
-		{
-			$this->groups = array($this->groups);
-		}
-		$this->groups[] = $name;
+		array_push($this->groups, $name);
+
+		return $this;
 	}
 	
 	public function quit_group($name = "")
@@ -118,11 +126,13 @@ class SocketClient
 			}
 		}
 		$this->groups = $a;
+
+		return $this;
 	}
 	
 	public function get_group()
 	{
-		return is_array($this->groups) ? $this->groups : $this->groups[0];
+		return count($this->groups) > 1 ? $this->groups : $this->groups[0];
 	}
 	
 	public function in_group($groups = "")

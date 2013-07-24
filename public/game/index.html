@@ -49,9 +49,9 @@
         <a href="javascript:void(0);" class="btn" onclick="client.socket.send('kill_npcs');">KILL NPCs</a>
         <a href="javascript:void(0);" class="btn" onclick="client.socket.send('attract_npcs', confirm('Do you want to attract all NPCs ?'));">Attract NPCs</a>
 
-        <div style="float:right;">
-            <a href="javascript:void(0);" class="btn active" id="tile-grass" onclick="jQuery('#map').css('background-image', 'url(images/tile-grass.jpg)'); this.className='btn active'; jQuery('#tile-sand').removeClass('active');">Grass</a>
-            <a href="javascript:void(0);" class="btn" id="tile-sand" onclick="jQuery('#map').css('background-image', 'url(images/tile-sand.gif)'); this.className='btn active'; jQuery('#tile-grass').removeClass('active');">Sand</a>
+        <div id="areas-selector" style="float:right;">
+            <a href="javascript:void(0);" class="btn active" data-area="grass" data-map-image="tile-grass.jpg">Grass</a>
+            <a href="javascript:void(0);" class="btn" data-area="sand" data-map-image="tile-sand.gif">Sand</a>
         </div>
 
         <div id="scene">
@@ -79,6 +79,20 @@
         jQuery(document).ready(function()
         {
             client = new Game("127.0.0.1", "8083");
+        });
+
+        // initialise area switch buttons
+        var areasButtons = jQuery("#areas-selector").find("a");
+        areasButtons.click(function()
+        {
+            var thisLink = jQuery(this);
+            areasButtons.removeClass("active");
+
+            jQuery('#map')
+            .css('background-image', 'url(images/' + thisLink.attr("data-map-image") + ')');
+
+            thisLink.addClass('active');
+            client.socket.send('change_area', thisLink.attr("data-area") );
         });
 
     </script>
