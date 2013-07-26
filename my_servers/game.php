@@ -14,6 +14,7 @@ class Game_SocketServer extends SocketServer
     {
         $this->set_server_name("Simple Game Server");
         $this->recognized_keys = array("w", "a", "s", "d", "space", "enter", "shift", "e", "q", "t");
+        $this->npcs_candy = false;
 
         // create dirs (if they don't exists) to save game players data
         $this->fm = new FilesManager();
@@ -308,7 +309,7 @@ class Game_SocketServer extends SocketServer
             $this->update_client($npc);
             
             // follow the player "candy"
-            if(isset($this->npcs_candy) && $this->npcs_candy && $this->npcs_candy->get_group() == $npc->get_group())
+            if($this->npcs_candy && $this->npcs_candy->get_group() == $npc->get_group())
             {
                 $props = $npc->get(array("x", "y"));
                 $candy = $this->npcs_candy->get(array("x", "y", "username"));
