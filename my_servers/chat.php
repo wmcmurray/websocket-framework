@@ -102,6 +102,6 @@ class Chat_SocketServer extends SocketServer
 }
 
 // create and start the server
-$server = new Chat_SocketServer("127.0.0.1", 8082);
+$server = new Chat_SocketServer($CONFIG["default_ip"], 8082);
 $server->run();
 ?>

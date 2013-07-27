@@ -52,6 +52,6 @@ class AdminCP_SocketServer extends SocketServer
 }
 
 // create and start the server
-$server = new AdminCP_SocketServer("127.0.0.1", 8081);
+$server = new AdminCP_SocketServer($CONFIG["default_ip"], 8081);
 $server->run();
 ?>

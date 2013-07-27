@@ -371,6 +371,6 @@ class Game_SocketServer extends SocketServer
     }
 }
 
-$server = new Game_SocketServer("127.0.0.1", 8083);
+$server = new Game_SocketServer($CONFIG["default_ip"], 8083);
 $server->run();
 ?>

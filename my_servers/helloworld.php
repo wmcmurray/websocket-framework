@@ -19,6 +19,6 @@ class HelloWorld_SocketServer extends SocketServer
     }
 }
 
-$server = new HelloWorld_SocketServer("127.0.0.1", 8080);
+$server = new HelloWorld_SocketServer($CONFIG["default_ip"], 8080);
 $server->run();
 ?>
