@@ -38,7 +38,7 @@ if(isset($server))
 
 	if($CONFIG)
 	{
-		while(system($CONFIG["php_path"] . " ". $CONFIG["servers_path"] . $server . ".php " . $options) == "-reboot_on_shutdown")
+		while(system($CONFIG["php_path"] . " ". $CONFIG["servers_path"] . $server . "/" . $server . ".php " . $options) == "-reboot_on_shutdown")
 		{
 			get_config();
 		}

@@ -5,7 +5,7 @@ class SocketServer
 	private $server_name 	= "SERVER"; // default server name
 	private $admin_password = "root";	// default admin password
 	private $max_clients 	= 1000;		// default connected clients limit
-	private $version 		= "0.0.3";	// server version
+	private $version 		= "0.0.4";	// server version
 	private $socket_select_timeout = 1;
 	private $socket_recv_len = 2048;
 	private $tick_interval = 1;

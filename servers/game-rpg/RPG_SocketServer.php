@@ -1,10 +1,8 @@
 <?php
-require_once("../core/index.php"); // NOTE: make this path absolute if script is executed outside "/executables" dir
-
-// import the filesManager helper to save players data in text files
+require_once("../core/index.php");
 require_once("../core/helpers/FilesManager.php");
 
-class Game_SocketServer extends SocketServer
+class RPG_SocketServer extends SocketServer
 {
     //protected $objects = array();
 
@@ -12,14 +10,13 @@ class Game_SocketServer extends SocketServer
     //===========================================================================
     protected function init()
     {
-        $this->set_server_name("Simple Game Server");
         $this->recognized_keys = array("w", "a", "s", "d", "space", "enter", "shift", "e", "q", "t");
         $this->npcs_candy = false;
 
         // create dirs (if they don't exists) to save game players data
         $this->fm = new FilesManager();
-        $this->fm->make_dir("game/");
-        $this->fm->make_dir("game/players/");
+        $this->fm->make_dir("game-rpg/");
+        $this->fm->make_dir("game-rpg/players/");
 
         // create some NPCs at the begining
         // cats in grass world
@@ -253,14 +250,14 @@ class Game_SocketServer extends SocketServer
         // save state of human clients only (no NPCs)
         if($username && !$client->is_npc())
         {
-            output("Saving " . $client->get("username") . " state " . ($this->fm->save_file("game/players/" . $username . ".json", json_encode($client->get())) ? "sucessful" : "failed"));
+            output("Saving " . $client->get("username") . " state " . ($this->fm->save_file("game-rpg/players/" . $username . ".json", json_encode($client->get())) ? "sucessful" : "failed"));
         }
     }
 
     // check if a username has data saved on server, if yes, return it
     protected function get_client_state($client)
     {
-        $file = "game/players/" . $client->get("username") . ".json";
+        $file = "game-rpg/players/" . $client->get("username") . ".json";
         return $this->fm->file_exists($file) ? json_decode($this->fm->read_file_content($file), true) : false;
     }
 
@@ -370,7 +367,4 @@ class Game_SocketServer extends SocketServer
         }
     }
 }
-
-$server = new Game_SocketServer($CONFIG["default_ip"], 8083);
-$server->run();
 ?>

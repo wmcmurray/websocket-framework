@@ -1,13 +1,8 @@
 <?php
-require_once("../core/index.php"); // NOTE: make this path absolute if script is executed outside "/executables" dir
+require_once("../core/index.php");
 
 class HelloWorld_SocketServer extends SocketServer
 {
-    protected function init()
-    {
-        $this->set_server_name("Hello World Server");
-    }
-
     // executed when server receive data
     protected function handle_helloworld($client, $data)
     {
@@ -18,7 +13,4 @@ class HelloWorld_SocketServer extends SocketServer
         $this->send_to_all("helloworld", $data);
     }
 }
-
-$server = new HelloWorld_SocketServer($CONFIG["default_ip"], 8080);
-$server->run();
 ?>

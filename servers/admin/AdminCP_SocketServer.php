@@ -1,17 +1,8 @@
-﻿<?php
-require_once("../core/index.php"); // NOTE: make this path absolute if script is executed outside "/executables" dir
+<?php
+require_once("../core/index.php");
 
 class AdminCP_SocketServer extends SocketServer
 {
-	// SERVER INIT
-	//===========================================================================
-	protected function init()
-	{
-		$this->set_server_name("Admin Control Panel");
-		$this->set_admin_password("admin");
-		$this->set_max_clients(10);
-	}
-	
 	// SERVER EVENTS
 	//===========================================================================
 	// when a client connects to the server
@@ -50,8 +41,4 @@ class AdminCP_SocketServer extends SocketServer
 		$this->send_to_all("reboot");
 	}
 }
-
-// create and start the server
-$server = new AdminCP_SocketServer($CONFIG["default_ip"], 8081);
-$server->run();
 ?>

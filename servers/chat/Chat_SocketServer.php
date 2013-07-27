@@ -1,5 +1,5 @@
-﻿<?php
-require_once("../core/index.php"); // NOTE: make this path absolute if script is executed outside "/executables" dir
+<?php
+require_once("../core/index.php");
 
 class Chat_SocketServer extends SocketServer
 {
@@ -7,13 +7,8 @@ class Chat_SocketServer extends SocketServer
 	//===========================================================================
 	protected function init()
 	{
-		$this->set_server_name("Chat Server");
-		$this->set_max_clients(50);
-		$this->set_config(array(
-			"messages_kept" => 10 // quantity of saved last messages
-		));
-
 		$this->messages = array(); // array containing last messages
+		$this->messages_kept = 10; // quantity of saved last messages
 	}
 	
 	// SERVER EVENTS
@@ -67,7 +62,7 @@ class Chat_SocketServer extends SocketServer
 		$content = array("client" => $client->get("username"), "message" => $data);
 
 		// erase older messages if limit is reached
-		if(count($this->messages) >= $this->get_config("messages_kept"))
+		if(count($this->messages) >= $this->messages_kept)
 		{
 			array_shift($this->messages);
 		}
@@ -100,8 +95,4 @@ class Chat_SocketServer extends SocketServer
 		$this->send_to_group($client->get_group(), "list_clients", $this->list_clients(array("username"), $this->get_clients_from_group($client->get_group())));		
 	}
 }
-
-// create and start the server
-$server = new Chat_SocketServer($CONFIG["default_ip"], 8082);
-$server->run();
 ?>
