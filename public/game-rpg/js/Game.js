@@ -9,6 +9,7 @@ function Game(address, port)
 		this.scene = document.getElementById("scene");
 		this.map = document.getElementById("map");
 		this.players = {};
+		this.objects = Array();
 		this.keypressed = {};
 		this.fps = 0;
 
@@ -100,6 +101,22 @@ function Game(address, port)
 				for(var id in data.content)
 				{
 					this.insert_player(id, data.content[id]);
+				}
+			break;
+
+			// when we receives a list of objects
+			case "objects_list" :
+				// delete old ones
+				for(var i in this.objects)
+				{
+					this.objects[i].remove();
+					delete this.objects[i];
+				}
+
+				// add new objects
+				for(var i in data.content)
+				{
+					this.insert_object(data.content[i]);
 				}
 			break;
 
@@ -257,6 +274,12 @@ function Game(address, port)
 	{
 		this.players[id].disappear();
 		delete this.players[id];
+	}
+
+	// create a new object instance in the game
+	this.insert_object = function(props)
+	{
+		this.objects.push(new Game_Object(props.name, this.map, props.pos.x, props.pos.y));
 	}
 
 	// move the whole scene to always see player, this simulate a camera effect

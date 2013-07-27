@@ -42,10 +42,9 @@
 
 
     <div class="container" id="demo">
-        <a href="javascript:void(0);" class="btn" onclick="client.socket.sys_send('login','root');">login</a>
-        <a href="javascript:void(0);" class="btn" onclick="client.socket.sys_send('reboot');">reboot server</a>
+        <a href="javascript:void(0);" class="btn btn-danger" onclick="client.socket.sys_send('login','root'); client.socket.sys_send('reboot');">reboot server</a>
         <a href="javascript:void(0);" class="btn" onclick="client.socket.send('teleport', {x: jQuery(client.map).width() * 0.5, y: jQuery(client.map).height() * 0.5});">teleport center</a>
-        <a href="javascript:void(0);" class="btn" onclick="client.socket.send('create_npc');">+1 NPC</a>
+        <a href="javascript:void(0);" class="btn btn-success" onclick="client.socket.send('create_npc');">+1 NPC</a>
         <a href="javascript:void(0);" class="btn" onclick="client.socket.send('kill_npcs');">KILL NPCs</a>
         <a href="javascript:void(0);" class="btn" onclick="client.socket.send('attract_npcs', confirm('Do you want to attract all NPCs ?'));">Attract NPCs</a>
 
@@ -56,7 +55,9 @@
 
         <div id="scene">
             <div id="map">
-                <div style="position:absolute; top:50%; left:50%;"><img src="images/decal.png" style="position:relative; left:-128px; top:-128px" alt=""></div>
+                <div style="position:absolute; top:50%; left:50%;">
+                    <img src="images/decal.png" style="position:relative; left:-128px; top:-128px" alt="">
+                </div>
             </div>
         </div>
         <p class="muted">
@@ -72,6 +73,7 @@
     <script src="../lib/EventsDispatcher.js"></script>
     <script src="js/Game.js"></script>
     <script src="js/Character.js"></script>
+    <script src="js/Game_Object.js"></script>
     <script>
 
         // Client Initialization

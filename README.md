@@ -12,7 +12,7 @@ You won't have to deal with socket listening, handshaking, data unmasking and su
 
 Features
 -------------------------
-* **Supports RFC 6455
+* Supports **RFC 6455**
 * **Easy** to use API
 * **Only 10 lines of code** to make a working server
 * **Remote control** of servers via a JavaScript client (kick clients, shutdown/reboot server, etc.)

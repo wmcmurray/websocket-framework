@@ -131,3 +131,14 @@ body
 	text-align: center;
 	color: #fff;
 }
+
+#demo #scene .object
+{
+	position: absolute;
+	top: 10px;
+	left: 10px;
+
+	width: 34px;
+	height: 34px;
+	background: url(images/objects.png) 0px 0px no-repeat;
+}

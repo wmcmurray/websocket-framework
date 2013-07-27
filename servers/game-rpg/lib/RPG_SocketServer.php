@@ -2,15 +2,19 @@
 require_once("../core/index.php");
 require_once("../core/helpers/FilesManager.php");
 
+require_once("Game_Object.php");
+
 class RPG_SocketServer extends SocketServer
 {
-    //protected $objects = array();
+    protected $objects = array();
 
     // SERVER INIT
     //===========================================================================
     protected function init()
     {
         $this->recognized_keys = array("w", "a", "s", "d", "space", "enter", "shift", "e", "q", "t");
+        $this->areas = array("grass", "sand");
+        $this->possible_objects = array("knife", "shortsword", "broadsword", "steel broadsword", "health potion");
         $this->npcs_candy = false;
 
         // create dirs (if they don't exists) to save game players data
@@ -30,6 +34,19 @@ class RPG_SocketServer extends SocketServer
 
         // a cool dude in desert
         $this->create_npc("hero10")->set(array("username" => "Badass NPC"))->set_group("sand");
+
+
+        // add some random objects on the ground per areas
+        foreach($this->areas as $area)
+        {
+            $this->objects[$area] = array();
+
+            for($i = 1; $i <= 40; $i++)
+            {
+                $object = new Game_Object($this->possible_objects[rand(0, count($this->possible_objects) -1)], rand(100, 1900), rand(100, 1900));
+                array_push($this->objects[$area], $object);
+            }
+        }
     }
 
 
@@ -186,10 +203,14 @@ class RPG_SocketServer extends SocketServer
 
     protected function handle_change_area($client, $data)
     {
-        $this->send_to_others_in_group($client, "player_quit", $client->id);
-        $client->set_group($data)->set(array("area" => $data));
-        $this->send_new_player($client);
-        $this->send_players_list($client);
+        if(in_array($data, $this->areas))
+        {
+            $this->send_to_others_in_group($client, "player_quit", $client->id);
+            $client->set_group($data)->set(array("area" => $data));
+            $this->send_new_player($client);
+            $this->send_objects_list($client);
+            $this->send_players_list($client);
+        }
     }
     
 
@@ -223,12 +244,22 @@ class RPG_SocketServer extends SocketServer
             );
 
             $this->send($client, "sync", array("initial_sync" => $initial_sync_props));
-            $this->send_players_list($client);
         }
         else
         {
             $this->send($client, "sync", $props);
         }
+    }
+
+    // send a list of all objects in this area to a client
+    protected function send_objects_list($client)
+    {
+        $objects = array();
+        foreach ($this->objects[$client->get("area")] as $k => $v)
+        {
+            array_push($objects, array("name" => $v->name, "pos" => $v->get_pos()));
+        }
+        $this->send($client, "objects_list", $objects);
     }
 
     // send a list of all players in this area to a client
