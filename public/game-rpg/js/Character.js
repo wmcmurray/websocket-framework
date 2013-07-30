@@ -32,10 +32,18 @@ Character.prototype.init = function()
 	this.view.username.className = "username";
 	this.view.username.innerHTML = this.username ? this.username : "Anonymous";
 
+	this.view.health = document.createElement("div");
+	this.view.health.className = "ui health";
+
+	this.view.healthbar = document.createElement("div");
+	this.view.healthbar.className = "bar";
+
 	this.view.coord = document.createElement("div");
 	this.view.coord.className = "coord";
 
 	this.view.sprite.appendChild(this.view.username);
+	this.view.health.appendChild(this.view.healthbar);
+	this.view.sprite.appendChild(this.view.health);
 	this.view.appendChild(this.view.shadow);
 	this.view.appendChild(this.view.coord);
 	this.view.appendChild(this.view.sprite);
@@ -56,6 +64,9 @@ Character.prototype.sync = function(props)
 	{
 		this.props[i] = props[i];
 	}
+
+	// health bar
+	this.view.healthbar.style.width = (this.props["health"] * 100) / this.props["max_health"] + "%";
 
 	if(this.props.direction[0] != 0 || this.props.direction[1] != 0)
 	{

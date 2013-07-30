@@ -184,6 +184,9 @@ function Game(address, port)
 		.keydown(jQuery.proxy(this.on_keyevent, this))
 		.keyup(jQuery.proxy(this.on_keyevent, this));
 
+		jQuery(this.map)
+		.mousedown(jQuery.proxy(this.on_mouseevent, this));
+
 		jQuery(window).blur(function()
 		{
 			var a = Array(87, 65, 83, 68);
@@ -193,6 +196,14 @@ function Game(address, port)
 			}
 		})
 		.resize(jQuery.proxy(this.update_camera, this, 0));
+	}
+
+	this.on_mouseevent = function(e)
+	{
+		e.preventDefault();
+		var x = e.pageX - jQuery(e.currentTarget).offset().left;
+		var y = e.pageY - jQuery(e.currentTarget).offset().top;
+		this.socket.send("mouseevent", {type: e.type, x: Math.round(x), y: Math.round(y)});
 	}
 
 	// handler executed when player press or release a key on his keyboard

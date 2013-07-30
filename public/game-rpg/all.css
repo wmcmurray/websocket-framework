@@ -10,8 +10,15 @@ body
 
 #demo
 {
-	height: 80%;
+	height: 75%;
 	margin-top: 20px;
+
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: moz-none;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 #demo #scene
@@ -24,11 +31,63 @@ body
 	margin-top: 5px;
 }
 
+#demo #scene .ui
+{
+	position: absolute;
+	z-index: 2;
+}
+
+#demo #scene .ui.health, #demo #scene .ui.exp
+{
+	border-radius: 3px;
+
+	bottom: -10px;
+	left: 0px;
+	overflow: hidden;
+
+	height: 3px;
+	width: 100%;
+	padding: 1px;
+	background: rgba(0,0,0,0.5);
+}
+
+#demo #scene .ui.health .bar, #demo #scene .ui.exp .bar
+{
+	border-radius: 2px;
+	box-shadow: rgba(255,255,255,0.5) 0px 0px 0px 1px inset;
+
+	width: 0%;
+	height: 100%;
+	background: #f00;
+}
+
+#demo #scene .ui.exp
+{
+	border-radius: 0px;
+	bottom: 0px;
+}
+
+#demo #scene .ui.exp .bar
+{
+	background-color: #f0f;
+}
+
+#demo #scene .ui.lvl
+{
+	top: 10px;
+	right: 10px;
+	width: 200px;
+	font-size: 22px;
+	text-align: right;
+	color: #fff;
+}
+
 #demo #scene #map
 {
 	position: absolute;
 	top: 0px;
 	left: 0px;
+	z-index: 1;
 	overflow: hidden;
 	width: 2000px;
 	height: 2000px;
@@ -79,7 +138,7 @@ body
 #demo #scene .character .coord
 {
 	position: absolute;
-	top: 100%;
+	top: 130%;
 	left: 0px;
 	z-index: 3;
 
