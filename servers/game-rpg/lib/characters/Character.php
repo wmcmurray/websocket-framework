@@ -1,0 +1,71 @@
+<?php
+require_once(SERVER_ROOT . "lib/Entity.php");
+
+class Character extends Entity
+{
+    protected $state;
+
+    public function __construct($state = array())
+    {
+        parent::__construct();
+        
+        $this->state = $state;
+
+        if($this->state["x"] && $this->state["y"])
+        {
+        	$this->set_pos($this->state["x"], $this->state["y"]);
+        }
+    }
+
+    public function set_state($props = null, $value = null)
+    {
+		if(!is_array($props))
+		{
+			$props = array($props => $value);
+		}
+
+		foreach($props as $k => $v)
+		{
+			$this->state[$k] = $v;
+		}
+
+		$this->set_pos($this->state["x"], $this->state["y"]);
+    }
+
+    public function get_state($props = null)
+    {
+    	// all props
+    	if(is_null($props))
+    	{
+    		return $this->state;
+    	}
+    	else
+    	{
+    		// single prop
+    		if(!is_array($props))
+    		{
+    			if(isset($this->state[$props]))
+    			{
+    				return $this->state[$props];
+    			}
+    			else
+    			{
+    				return null;
+    			}
+    		}
+
+    		// multiple props
+    		$a = array();
+    		foreach($props as $k => $v)
+    		{
+    			if(isset($this->state[$v]))
+    			{
+    				$a[$v] = $this->state[$v];
+    			}
+    		}
+
+    		return $a;
+    	}
+    }
+}
+?>

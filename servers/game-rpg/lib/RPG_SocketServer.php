@@ -2,7 +2,8 @@
 require_once("../core/index.php");
 require_once("../core/helpers/FilesManager.php");
 
-require_once("Game_Object.php");
+require_once(SERVER_ROOT . "lib/characters/Character.php");
+require_once(SERVER_ROOT . "lib/objects/Game_Object.php");
 
 class RPG_SocketServer extends SocketServer
 {
@@ -30,10 +31,10 @@ class RPG_SocketServer extends SocketServer
         }
 
         // a cool dude in grass world
-        $this->create_npc("hero13")->set(array("username" => "Paladin NPC", "max_health" => 200, "health" => 200))->set_group("grass");
+        $this->create_npc("hero13")->set_group("grass")->character->set_state(array("username" => "Paladin NPC", "max_health" => 200, "health" => 200));
 
         // a cool dude in desert
-        $this->create_npc("hero10")->set(array("username" => "Badass NPC", "max_health" => 200, "health" => 200))->set_group("sand");
+        $this->create_npc("hero10")->set_group("sand")->character->set_state(array("username" => "Badass NPC", "max_health" => 200, "health" => 200));
 
 
         // add some random objects on the ground per areas
@@ -74,10 +75,15 @@ class RPG_SocketServer extends SocketServer
         $clients = $this->get_clients();
         foreach($clients as $client)
         {
-            $props = $client->get(array("health", "max_health"));
-            if($props["health"] < $props["max_health"])
+            if(isset($client->character))
             {
-                $client->set(array("health" => ++$props["health"]));
+                $props = $client->character->get_state(array("health", "max_health"));
+                if($props["health"] < $props["max_health"])
+                {
+                    $client->character->set_state(array("health" => $props["health"] + ($props["max_health"] / 50)));
+                    $this->sync_client($client);
+                    $this->send_to_group($client->get_group(), "player_update", array("id" => $client->id, "props" => $client->character->get_state(array("x", "y", "speed", "health", "direction"))));
+                }
             }
         } 
     }
@@ -105,13 +111,12 @@ class RPG_SocketServer extends SocketServer
         if($data)
         {
             $username = strtolower($data);
-            $client->set("username", $username);
-            $initial_state = $this->get_client_state($client);
+            $initial_state = $this->get_player_state($username);
 
             if($initial_state)
             {
                 // compare saved data with a new player state to add missing props if we updated
-                // the game since this player saved his player
+                // the game since this player saved his character
                 $default_state = $this->create_initial_character_state();
                 foreach($default_state as $k => $v)
                 {
@@ -120,6 +125,9 @@ class RPG_SocketServer extends SocketServer
                         $initial_state[$k] = $v;
                     }
                 }
+
+                // TODO: delete props that dosen't exist now too
+                //...
 
                 // reset last update time and pressed keys to prevent calculation problems
                 $initial_state["last_update"] = microtime(true);
@@ -133,10 +141,11 @@ class RPG_SocketServer extends SocketServer
             else
             {
                 $initial_state = $this->create_initial_character_state("hero" . rand(1, 13));
+                $initial_state["username"] = $username;
             }
             
-            $client->set($initial_state);
-            $client->set_group($client->get("area") ? $client->get("area") : "grass");
+            $client->character = new Character($initial_state);
+            $client->set_group($initial_state["area"] ? $initial_state["area"] : "grass");
             $this->sync_client($client, true);
             $this->send_new_player($client);
         }
@@ -159,84 +168,59 @@ class RPG_SocketServer extends SocketServer
                 // if shift key, change client movement speed
                 if($data->key == "shift")
                 {
-                    $client->set(array("speed" => $data->type == "keydown" ? 300 : 200));
+                    $client->character->set_state(array("speed" => $data->type == "keydown" ? 300 : 200));
                 }
 
                 // if one of the movement keys, update player direction
                 else if(in_array($data->key, array("w", "a", "s", "d")))
                 {
-                    $props = $client->get(array("keys", "direction"));
+                    $props = $client->character->get_state(array("keys", "direction"));
                     $props["keys"][$data->key] = $data->type == "keydown" ? true : false;
                     $props["direction"][0] = ($props["keys"]["a"] ? -1 : 0) + ($props["keys"]["d"] ? 1 : 0);
                     $props["direction"][1] = ($props["keys"]["w"] ? -1 : 0) + ($props["keys"]["s"] ? 1 : 0);
-                    $client->set($props);
+                    $client->character->set_state($props);
                 }
 
                 // syncronize client with server
                 $this->sync_client($client);
 
                 // broadcast key event result to other connected clients
-                $this->send_to_others_in_group($client, "player_update", array("id" => $client->id, "props" => $client->get(array("x", "y", "speed", "direction"))));
+                $this->send_to_others_in_group($client, "player_update", array("id" => $client->id, "props" => $client->character->get_state(array("x", "y", "speed", "direction"))));
             }
         }
-    }
-
-    // TODO: MOVE THIS METHOD SOMEWHERE ELSE
-    protected function get_angle($vec1, $vec2)
-    {
-        $deltaX = $vec2["x"] - $vec1["x"];
-        $deltaY = $vec2["y"] - $vec1["y"];
-        $angle = atan2($deltaY, $deltaX) * 180 / M_PI;
-        return $angle < 0 ? 360 + $angle : $angle;
-    }
-
-    // TODO: MOVE THIS METHOD SOMEWHERE ELSE
-    protected function get_distance($vec1, $vec2)
-    {
-        $deltaX = $vec2["x"] - $vec1["x"];
-        $deltaY = $vec2["y"] - $vec1["y"];
-        return sqrt(pow($deltaX, 2) + pow($deltaY, 2));
-    }
-
-    // TODO: MOVE THIS METHOD SOMEWHERE ELSE
-    protected function is_in_field_of_view($ang1, $ang2, $field = 45)
-    {
-        $fieldD = $field / 2;
-        $difference = $ang2 - $ang1;
-        return $difference < $fieldD && $difference > -$fieldD ? true : false;
     }
 
     // executed when a player press mouse button
     protected function handle_mouseevent($client, $data)
     {
-        $min_distance = 5;
-        $max_distance = 75;
+        $click = new Vector2($data->x, $data->y);
+
+        $sight_distance_min = 5;
+        $sight_distance_max = 75;
         $field_of_view = 90;
 
         $this->update_client($client);
-        $props = $client->get(array("x", "y"));
-        $angle = $this->get_angle($props, array("x" => $data->x, "y" => $data->y));
-        $distance = $this->get_distance($props, array("x" => $data->x, "y" => $data->y));
+        $angle = $client->character->get_angle($click);
 
         $clients = $this->get_clients_from_group($client->get_group(), $client);
         
+        // check if we hit an other player/npc
         foreach($clients as $other)
         {
             $this->update_client($other);
-            $a = $this->get_angle($props, $other->get(array("x", "y")));
-            $d = $this->get_distance($props, $other->get(array("x", "y")));
 
-            if($d <= $max_distance && $d >= $min_distance && $this->is_in_field_of_view($angle, $a, $field_of_view))
+            if($client->character->sight($other->character->get_pos(), $angle, $field_of_view, $sight_distance_max, $sight_distance_min))
             {
                 $this->send_to_group($client->get_group(), "player_action", array("id" => $other->id, "action" => "talk", "msg" => "AOUCH I'M HIT !"));
                 $this->send_to_group($client->get_group(), "player_action", array("id" => $other->id, "action" => "jump"));
 
-                $other->set(array("health" => $other->get("health") - 10));
-                $this->send_to_group($client->get_group(), "player_update", array("id" => $other->id, "props" => $other->get(array("x", "y", "speed", "health", "direction"))));
+                $other->character->set_state(array("health" => $other->character->get_state("health") - 10));
+                $this->sync_client($other);
+                $this->send_to_group($client->get_group(), "player_update", array("id" => $other->id, "props" => $other->character->get_state(array("x", "y", "speed", "health", "direction"))));
 
-                if($other->get("health") <= 0)
+                if($other->character->get_state("health") <= 0)
                 {
-                    $other->set(array("health" => $other->get("max_health")));
+                    $other->character->set_state(array("health" => $other->character->get_state("max_health")));
                     $this->disconnect($other);
                 }
             }
@@ -246,11 +230,11 @@ class RPG_SocketServer extends SocketServer
     protected function handle_teleport($client, $data)
     {
         $this->update_client($client);
-        $client->set("x", $data->x);
-        $client->set("y", $data->y);
-        $client->set("last_update", microtime(true));
+        $client->character->set_state("x", $data->x);
+        $client->character->set_state("y", $data->y);
+        $client->character->set_state("last_update", microtime(true));
         $this->send($client, "teleport", array("x" => $data->x, "y" => $data->y));
-        $this->send_to_others_in_group($client, "player_teleport", array("id" => $client->id, "props" => $client->get(array("x", "y"))));
+        $this->send_to_others_in_group($client, "player_teleport", array("id" => $client->id, "props" => $client->character->get_state(array("x", "y"))));
     }
 
     protected function handle_talk($client, $data)
@@ -263,7 +247,7 @@ class RPG_SocketServer extends SocketServer
         $npc = $this->create_npc($data ? $data : "npc1");
         $npc->set_group($client->get_group());
         $this->update_client($client);
-        $npc->set($client->get(array("x", "y")));
+        $npc->character->set_state($client->character->get_state(array("x", "y")));
         $this->send_new_player($npc);
     }
 
@@ -290,7 +274,7 @@ class RPG_SocketServer extends SocketServer
         if(in_array($data, $this->areas))
         {
             $this->send_to_others_in_group($client, "player_quit", $client->id);
-            $client->set_group($data)->set(array("area" => $data));
+            $client->set_group($data)->character->set_state(array("area" => $data));
             $this->send_new_player($client);
             $this->send_objects_list($client);
             $this->send_players_list($client);
@@ -305,26 +289,26 @@ class RPG_SocketServer extends SocketServer
     // calculate current player state
     protected function update_client($client)
     {
-        $props = $client->get(array("last_update", "x", "y", "speed", "direction"));
+        $props = $client->character->get_state(array("last_update", "x", "y", "speed", "direction"));
         $now = microtime(true);
         $deltatime = $now - $props["last_update"];
         $divider = $props["direction"][0] && $props["direction"][1] ? 0.75 : 1;
-        $client->set("x", round($props["x"] + (($props["speed"] * $deltatime) * ($props["direction"][0] * $divider))));
-        $client->set("y", round($props["y"] + (($props["speed"] * $deltatime) * ($props["direction"][1] * $divider))));
-        $client->set("last_update", $now);
+        $client->character->set_state("x", round($props["x"] + (($props["speed"] * $deltatime) * ($props["direction"][0] * $divider))));
+        $client->character->set_state("y", round($props["y"] + (($props["speed"] * $deltatime) * ($props["direction"][1] * $divider))));
+        $client->character->set_state("last_update", $now);
     }
 
     // syncronize a client estimated state with it's real state on the server (if it's the first sync, we send more data)
     protected function sync_client($client, $initial_sync = false)
     {
-        $props = $client->get(array("x", "y", "speed", "direction", "health", "max_health", "exp"));
+        $props = $client->character->get_state(array("x", "y", "speed", "direction", "health", "max_health", "exp"));
 
         if($initial_sync)
         {
             $initial_sync_props = array(
                 "props"         => $props,
-                "skin"          => $client->get("skin"),
-                "area"          => $client->get("area"),
+                "skin"          => $client->character->get_state("skin"),
+                "area"          => $client->character->get_state("area"),
             );
 
             $this->send($client, "sync", array("initial_sync" => $initial_sync_props));
@@ -339,7 +323,7 @@ class RPG_SocketServer extends SocketServer
     protected function send_objects_list($client)
     {
         $objects = array();
-        foreach ($this->objects[$client->get("area")] as $k => $v)
+        foreach ($this->objects[$client->character->get_state("area")] as $k => $v)
         {
             array_push($objects, array("name" => $v->name, "pos" => $v->get_pos()));
         }
@@ -349,30 +333,38 @@ class RPG_SocketServer extends SocketServer
     // send a list of all players in this area to a client
     protected function send_players_list($client)
     {
-        $this->send($client, "players_list", $this->list_clients(array("username", "skin", "x", "y", "speed", "health", "max_health", "direction"), $this->get_clients_from_group($client->get_group(), $client)));
+        $clients = $this->get_clients_from_group($client->get_group(), $client);
+        $a = array();
+
+        foreach($clients as $k => $v)
+        {
+            $a[$v->id] = $v->character->get_state(array("username", "skin", "x", "y", "speed", "health", "max_health", "direction"));
+        }
+
+        $this->send($client, "players_list", $a);
     }
 
     protected function send_new_player($client)
     {
-        $this->send_to_others_in_group($client, "new_player", array("id" => $client->id, "props" => $client->get(array("username", "skin", "x", "y", "speed", "health", "max_health", "direction"))));
+        $this->send_to_others_in_group($client, "new_player", array("id" => $client->id, "props" => $client->character->get_state(array("username", "skin", "x", "y", "speed", "health", "max_health", "direction"))));
     }
 
     // save client data in a text file
     protected function save_client_state($client)
     {
-        $username = $client->get("username");
+        $username = $client->character->get_state("username");
 
         // save state of human clients only (no NPCs)
         if($username && !$client->is_npc())
         {
-            output("Saving " . $client->get("username") . " state " . ($this->fm->save_file("game-rpg/players/" . $username . ".json", json_encode($client->get())) ? "sucessful" : "failed"));
+            output("Saving " . $username . " state " . ($this->fm->save_file("game-rpg/players/" . $username . ".json", json_encode($client->character->get_state())) ? "sucessful" : "failed"));
         }
     }
 
     // check if a username has data saved on server, if yes, return it
-    protected function get_client_state($client)
+    protected function get_player_state($username)
     {
-        $file = "game-rpg/players/" . $client->get("username") . ".json";
+        $file = "game-rpg/players/" . $username . ".json";
         return $this->fm->file_exists($file) ? json_decode($this->fm->read_file_content($file), true) : false;
     }
 
@@ -397,7 +389,7 @@ class RPG_SocketServer extends SocketServer
             "exp"           => 0,
             "keys"          => $keystates,
             "direction"     => array(0,0),
-            //"inventory"     => array("shortsword"),
+            //"inventory"     => array("knife"),
             "last_update"   => microtime(true)
         );
     }
@@ -407,14 +399,16 @@ class RPG_SocketServer extends SocketServer
     {
         $initial_npc_state = $this->create_initial_character_state($skin);
         $initial_npc_state["speed"] = rand(15, 50);
+        $initial_npc_state["username"] = "Brainless NPC";
+        $initial_npc_state["x"] = 1000 + rand(-100, 100);
+        $initial_npc_state["y"] = 1000 + rand(-100, 100);
 
         $npc = $this->create_client();
-        $npc->set($initial_npc_state);
-        $npc->set(array("username" => "Brainless NPC", "x" => 1000 + rand(-100, 100), "y" => 1000 + rand(-100, 100)));
+        $npc->character = new Character($initial_npc_state);
 
         if($skin == "npc1")
         {
-            $npc->set(array("max_health" => 30, "health" => 30));
+            $npc->character->set_state(array("max_health" => 30, "health" => 30));
         }
 
         return $npc;
@@ -431,14 +425,14 @@ class RPG_SocketServer extends SocketServer
             // follow the player "candy"
             if($this->npcs_candy && $this->npcs_candy->get_group() == $npc->get_group())
             {
-                $props = $npc->get(array("x", "y"));
-                $candy = $this->npcs_candy->get(array("x", "y", "username"));
+                $props = $npc->character->get_state(array("x", "y"));
+                $candy = $this->npcs_candy->character->get_state(array("x", "y", "username"));
 
                 $directionX = ($props["x"] > $candy["x"] ? -1 : 1);
                 $directionY = ($props["y"] > $candy["y"] ? -1 : 1);
-                $npc->set(array("direction" => array($directionX, $directionY), "speed" => rand(100, 180)));
+                $npc->character->set_state(array("direction" => array($directionX, $directionY), "speed" => rand(100, 180)));
 
-                $this->send_to_others_in_group($npc, "player_update", array("id" => $npc->id, "props" => $npc->get(array("x", "y", "speed", "health", "max_health", "direction"))));
+                $this->send_to_others_in_group($npc, "player_update", array("id" => $npc->id, "props" => $npc->character->get_state(array("x", "y", "speed", "health", "max_health", "direction"))));
                 
                 // they may scream
                 if(rand(0,4) == 1)
@@ -458,12 +452,12 @@ class RPG_SocketServer extends SocketServer
             else if(rand(0,3) == 1 || $all)
             {
                 // random direction OR forced direction if NPC go too far from map center
-                $props = $npc->get(array("x", "y", "skin"));
+                $props = $npc->character->get_state(array("x", "y", "skin"));
                 $directionX = ($props["x"] >= 1500 ? -1 : ($props["x"] <= 500 ? 1 : rand(-1, 1) ) );
                 $directionY = ($props["y"] >= 1500 ? -1 : ($props["y"] <= 500 ? 1 : rand(-1, 1) ) );
-                $npc->set(array("direction" => array($directionX, $directionY), "speed" => rand(15, 75)));
+                $npc->character->set_state(array("direction" => array($directionX, $directionY), "speed" => rand(15, 75)));
 
-                $this->send_to_others_in_group($npc, "player_update", array("id" => $npc->id, "props" => $npc->get(array("x", "y", "speed", "health", "max_health", "direction"))));
+                $this->send_to_others_in_group($npc, "player_update", array("id" => $npc->id, "props" => $npc->character->get_state(array("x", "y", "speed", "health", "max_health", "direction"))));
                 
                 // 1 chance out of five that it will talk
                 if(rand(0,5) == 1)
