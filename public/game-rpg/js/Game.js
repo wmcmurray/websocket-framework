@@ -60,33 +60,31 @@ function Game(address, port)
 	{
 		switch(data.action)
 		{
+			// triggered when player first sync
+			case "initial_sync" :
+				this.hero.sync(data.content).change_skin(data.content.skin).place();
+				this.update_camera(0);
+
+				if(this.loop_interval)
+				{
+					clearInterval(this.loop_interval);
+				}
+
+				if(this.fps > 0)
+				{
+					this.loop_interval = setInterval(this.socket.proxy(this.loop, this), 1000 / this.fps);
+					this.loop();
+				}
+
+				if(data.content.area)
+				{
+					areasButtons.parent().find("a[data-area='" + data.content.area + "']").trigger("click");
+				}
+			break;
+
 			// triggered when server send our real state to syncronize the browser
 			case "sync" :
-				if(data.content.initial_sync)
-				{
-					this.hero.sync(data.content.initial_sync.props).change_skin(data.content.initial_sync.skin).place();
-					this.update_camera(0);
-
-					if(this.loop_interval)
-					{
-						clearInterval(this.loop_interval);
-					}
-
-					if(this.fps > 0)
-					{
-						this.loop_interval = setInterval(this.socket.proxy(this.loop, this), 1000 / this.fps);
-						this.loop();
-					}
-
-					if(data.content.initial_sync.area)
-					{
-						areasButtons.parent().find("a[data-area='" + data.content.initial_sync.area + "']").trigger("click");
-					}
-				}
-				else
-				{
-					this.hero.sync(data.content);
-				}
+				this.hero.sync(data.content);
 			break;
 
 			// when we receives a list of players

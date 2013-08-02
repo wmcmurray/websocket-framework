@@ -67,7 +67,7 @@ class RPG_SocketServer extends SocketServer
             foreach($clients as $client)
             {
                 $this->update_client($client);
-                $this->save_client_state($client);
+                $this->save_player_state($client);
             }            
         }
 
@@ -81,8 +81,7 @@ class RPG_SocketServer extends SocketServer
                 if($props["health"] < $props["max_health"])
                 {
                     $client->character->set_state(array("health" => $props["health"] + ($props["max_health"] / 50)));
-                    $this->sync_client($client);
-                    $this->send_to_group($client->get_group(), "player_update", array("id" => $client->id, "props" => $client->character->get_state(array("x", "y", "speed", "health", "direction"))));
+                    $this->sync_client($client, true);
                 }
             }
         } 
@@ -97,7 +96,7 @@ class RPG_SocketServer extends SocketServer
         }
 
         $this->update_client($client);
-        $this->save_client_state($client);
+        $this->save_player_state($client);
         $this->send_to_others_in_group($client, "player_quit", $client->id);
     }
 
@@ -146,7 +145,7 @@ class RPG_SocketServer extends SocketServer
             
             $client->character = new Character($initial_state);
             $client->set_group($initial_state["area"] ? $initial_state["area"] : "grass");
-            $this->sync_client($client, true);
+            $this->initial_sync_client($client);
             $this->send_new_player($client);
         }
     }
@@ -182,10 +181,7 @@ class RPG_SocketServer extends SocketServer
                 }
 
                 // syncronize client with server
-                $this->sync_client($client);
-
-                // broadcast key event result to other connected clients
-                $this->send_to_others_in_group($client, "player_update", array("id" => $client->id, "props" => $client->character->get_state(array("x", "y", "speed", "direction"))));
+                $this->sync_client($client, true);
             }
         }
     }
@@ -215,8 +211,7 @@ class RPG_SocketServer extends SocketServer
                 $this->send_to_group($client->get_group(), "player_action", array("id" => $other->id, "action" => "jump"));
 
                 $other->character->set_state(array("health" => $other->character->get_state("health") - 10));
-                $this->sync_client($other);
-                $this->send_to_group($client->get_group(), "player_update", array("id" => $other->id, "props" => $other->character->get_state(array("x", "y", "speed", "health", "direction"))));
+                $this->sync_client($other, true);
 
                 if($other->character->get_state("health") <= 0)
                 {
@@ -298,25 +293,27 @@ class RPG_SocketServer extends SocketServer
         $client->character->set_state("last_update", $now);
     }
 
-    // syncronize a client estimated state with it's real state on the server (if it's the first sync, we send more data)
-    protected function sync_client($client, $initial_sync = false)
+    // first syncronisation of a client
+    protected function initial_sync_client($client)
     {
-        $props = $client->character->get_state(array("x", "y", "speed", "direction", "health", "max_health", "exp"));
+        $this->send($client, "initial_sync", $client->character->get_unsync_state());
+    }
 
-        if($initial_sync)
-        {
-            $initial_sync_props = array(
-                "props"         => $props,
-                "skin"          => $client->character->get_state("skin"),
-                "area"          => $client->character->get_state("area"),
-            );
+    // syncronize a client estimated state with it's real state on the server
+    protected function sync_client($client, $broadcast = false)
+    {
+        $state = $client->character->get_unsync_state();
 
-            $this->send($client, "sync", array("initial_sync" => $initial_sync_props));
-        }
-        else
+        if($state)
         {
-            $this->send($client, "sync", $props);
+            $this->send($client, "sync", $state);
+
+            if($broadcast)
+            {
+                $this->send_to_group($client->get_group(), "player_update", array("id" => $client->id, "props" => $state));
+            }
         }
+        
     }
 
     // send a list of all objects in this area to a client
@@ -350,7 +347,7 @@ class RPG_SocketServer extends SocketServer
     }
 
     // save client data in a text file
-    protected function save_client_state($client)
+    protected function save_player_state($client)
     {
         $username = $client->character->get_state("username");
 
@@ -431,8 +428,7 @@ class RPG_SocketServer extends SocketServer
                 $directionX = ($props["x"] > $candy["x"] ? -1 : 1);
                 $directionY = ($props["y"] > $candy["y"] ? -1 : 1);
                 $npc->character->set_state(array("direction" => array($directionX, $directionY), "speed" => rand(100, 180)));
-
-                $this->send_to_others_in_group($npc, "player_update", array("id" => $npc->id, "props" => $npc->character->get_state(array("x", "y", "speed", "health", "max_health", "direction"))));
+                $this->sync_client($npc, true);
                 
                 // they may scream
                 if(rand(0,4) == 1)
@@ -456,8 +452,7 @@ class RPG_SocketServer extends SocketServer
                 $directionX = ($props["x"] >= 1500 ? -1 : ($props["x"] <= 500 ? 1 : rand(-1, 1) ) );
                 $directionY = ($props["y"] >= 1500 ? -1 : ($props["y"] <= 500 ? 1 : rand(-1, 1) ) );
                 $npc->character->set_state(array("direction" => array($directionX, $directionY), "speed" => rand(15, 75)));
-
-                $this->send_to_others_in_group($npc, "player_update", array("id" => $npc->id, "props" => $npc->character->get_state(array("x", "y", "speed", "health", "max_health", "direction"))));
+                $this->sync_client($npc, true);
                 
                 // 1 chance out of five that it will talk
                 if(rand(0,5) == 1)

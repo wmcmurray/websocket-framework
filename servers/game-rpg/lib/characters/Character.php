@@ -4,6 +4,7 @@ require_once(SERVER_ROOT . "lib/Entity.php");
 class Character extends Entity
 {
     protected $state;
+    protected $state_sync;
 
     public function __construct($state = array())
     {
@@ -66,6 +67,23 @@ class Character extends Entity
 
     		return $a;
     	}
+    }
+
+    public function get_unsync_state()
+    {
+    	$a = array();
+    	$not_synced = array("keys", "last_update");
+
+    	foreach($this->state as $k => $v)
+    	{
+    		if(!in_array($k, $not_synced) && (!isset($this->state_sync[$k]) || $this->state_sync[$k] != $this->state[$k]))
+    		{
+    			$this->state_sync[$k] = $this->state[$k];
+    			array_push($a, $k);
+    		}
+    	}
+
+    	return $this->get_state($a);
     }
 }
 ?>

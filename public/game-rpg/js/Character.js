@@ -60,34 +60,42 @@ Character.prototype.init = function()
 
 Character.prototype.sync = function(props)
 {
+	// sync received props
 	for(var i in props)
 	{
 		this.props[i] = props[i];
 	}
 
 	// health bar
-	this.view.healthbar.style.width = (this.props["health"] * 100) / this.props["max_health"] + "%";
-
-	if(this.props.direction[0] != 0 || this.props.direction[1] != 0)
+	if(props["health"] || props["max_health"])
 	{
-		// refresh
-		if(this.refresh_interval)
-		{
-			clearInterval(this.refresh_interval);
-		}
-		this.refresh_interval = setInterval(jQuery.proxy(this.refresh, this), this.refresh_interval_time);
-
-		// anim
-		if(this.anim_interval)
-		{
-			clearInterval(this.anim_interval);
-		}
-
-		this.anim_interval = setInterval(jQuery.proxy(this.animate, this), 1000 / (this.props.speed / 20));
-		this.animate();
+		this.view.healthbar.style.width = (this.props["health"] * 100) / this.props["max_health"] + "%";
 	}
 
-	this.refresh();
+	// mouvements
+	if(props["x"] || props["y"] || props["speed"] || props["direction"])
+	{
+		if(this.props.direction[0] != 0 || this.props.direction[1] != 0)
+		{
+			// refresh
+			if(this.refresh_interval)
+			{
+				clearInterval(this.refresh_interval);
+			}
+			this.refresh_interval = setInterval(jQuery.proxy(this.refresh, this), this.refresh_interval_time);
+
+			// anim
+			if(this.anim_interval)
+			{
+				clearInterval(this.anim_interval);
+			}
+
+			this.anim_interval = setInterval(jQuery.proxy(this.animate, this), 1000 / (this.props.speed / 20));
+			this.animate();
+		}
+
+		this.refresh();
+	}
 	
 	return this;
 }
@@ -210,18 +218,18 @@ Character.prototype.animate = function()
 			}
 
 			// add footprint
-			var footprint = document.createElement("img");
-			footprint.className = "footprint";
-			footprint.src = "images/footprint.png";
-			footprint.style.left = Number(this.view.style.left.replace("px", "")) + (this.width * 0.5) + (this.anim_frame%2 && this.props.direction[1] ? -10 : 0) + "px";
-			footprint.style.top = Number(this.view.style.top.replace("px", "")) + (this.height) + (this.anim_frame%2 && this.props.direction[0] ? (this.props.direction[1] == this.props.direction[0] ? 5 : -5) : 0) -5 + "px";
-			this.parent.appendChild(footprint);
+			// var footprint = document.createElement("img");
+			// footprint.className = "footprint";
+			// footprint.src = "images/footprint.png";
+			// footprint.style.left = Number(this.view.style.left.replace("px", "")) + (this.width * 0.5) + (this.anim_frame%2 && this.props.direction[1] ? -10 : 0) + "px";
+			// footprint.style.top = Number(this.view.style.top.replace("px", "")) + (this.height) + (this.anim_frame%2 && this.props.direction[0] ? (this.props.direction[1] == this.props.direction[0] ? 5 : -5) : 0) -5 + "px";
+			// this.parent.appendChild(footprint);
 
-			setTimeout(function(){
-				jQuery(footprint).animate({opacity: 0}, 1000, function(){
-					this.parentNode.removeChild(this);
-				});
-			}, 10000)
+			// setTimeout(function(){
+			// 	jQuery(footprint).animate({opacity: 0}, 1000, function(){
+			// 		this.parentNode.removeChild(this);
+			// 	});
+			// }, 10000)
 			
 		}
 		else
