@@ -37,8 +37,8 @@ Game_Object.prototype.place = function(x, y)
 	this.x = x;
 	this.y = y;
 	
-	this.view.style.left = this.x + "px";
-	this.view.style.top = this.y + "px";
+	this.view.style.left = (this.x - this.width * 0.5) + "px";
+	this.view.style.top = (this.y - this.height * 0.5) + "px";
 
 	return this;
 }

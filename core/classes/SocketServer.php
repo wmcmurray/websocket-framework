@@ -176,7 +176,7 @@ class SocketServer
 		}
 		else
 		{
-			array_push($this->cmds_requiring_admin_privileges, $cmd);
+			$this->cmds_requiring_admin_privileges[] = $cmd;
 		}
 	}
 
@@ -267,7 +267,7 @@ class SocketServer
         {
             if($client->is_npc())
             {
-                array_push($npcs, $client);
+            	$npcs[] = $client;
             }
         }
 
@@ -600,7 +600,7 @@ class SocketServer
 									$this->ping_requests_queue[$pinged->id] = array();
 									$this->sys_send($pinged, "ping_request", microtime(true));
 								}
-								array_push($this->ping_requests_queue[$pinged->id], $client->id);
+								$this->ping_requests_queue[$pinged->id][] = $client->id;
 							}
 						break;
 						case "last_error":
@@ -695,7 +695,7 @@ class SocketServer
 				$done = true;
 			}
 
-			array_push($output, $text);
+			$output[] = $text;
 		}
 		while(!$done);
 

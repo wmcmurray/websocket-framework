@@ -35,19 +35,6 @@ class RPG_SocketServer extends SocketServer
 
         // a cool dude in desert
         $this->create_npc("hero10")->set_group("sand")->character->set_state(array("username" => "Badass NPC", "max_health" => 200, "health" => 200));
-
-
-        // add some random objects on the ground per areas
-        foreach($this->areas as $area)
-        {
-            $this->objects[$area] = array();
-
-            for($i = 1; $i <= 40; $i++)
-            {
-                $object = new Game_Object($this->possible_objects[rand(0, count($this->possible_objects) -1)], rand(100, 1900), rand(100, 1900));
-                array_push($this->objects[$area], $object);
-            }
-        }
     }
 
 
@@ -193,7 +180,7 @@ class RPG_SocketServer extends SocketServer
 
         $sight_distance_min = 5;
         $sight_distance_max = 75;
-        $field_of_view = 90;
+        $field_of_view = 135;
 
         $this->update_client($client);
         $angle = $client->character->get_angle($click);
@@ -216,6 +203,7 @@ class RPG_SocketServer extends SocketServer
                 if($other->character->get_state("health") <= 0)
                 {
                     $other->character->set_state(array("health" => $other->character->get_state("max_health")));
+                    $this->character_drop_loot($other);
                     $this->disconnect($other);
                 }
             }
@@ -320,11 +308,20 @@ class RPG_SocketServer extends SocketServer
     protected function send_objects_list($client)
     {
         $objects = array();
-        foreach ($this->objects[$client->character->get_state("area")] as $k => $v)
+        $area = $client->character->get_state("area");
+        if(isset($this->objects[$area]))
         {
-            array_push($objects, array("name" => $v->name, "pos" => $v->get_pos()));
+            foreach ($this->objects[$area] as $k => $v)
+            {
+                $objects[] = array("name" => $v->name, "pos" => $v->get_pos());
+            }
+
+            $this->send($client, "objects_list", $objects);
         }
-        $this->send($client, "objects_list", $objects);
+        else
+        {
+            $this->send($client, "objects_list", array());
+        }
     }
 
     // send a list of all players in this area to a client
@@ -346,6 +343,11 @@ class RPG_SocketServer extends SocketServer
         $this->send_to_others_in_group($client, "new_player", array("id" => $client->id, "props" => $client->character->get_state(array("username", "skin", "x", "y", "speed", "health", "max_health", "direction"))));
     }
 
+    protected function send_new_object($area, $object)
+    {
+        $this->send_to_group($area, "new_object", array("name" => $object->name, "pos" => $object->get_pos()));
+    }
+
     // save client data in a text file
     protected function save_player_state($client)
     {
@@ -363,6 +365,32 @@ class RPG_SocketServer extends SocketServer
     {
         $file = "game-rpg/players/" . $username . ".json";
         return $this->fm->file_exists($file) ? json_decode($this->fm->read_file_content($file), true) : false;
+    }
+
+
+    protected function create_object($name = "knife", $area = "grass", $x = 0, $y = 0)
+    {
+        if(!isset($this->objects[$area]))
+        {
+            $this->objects[$area] = array();
+        }
+
+        $object = new Game_Object($name, $x, $y);
+        $this->objects[$area][] = $object;
+        
+        return $object ;
+    }
+
+    protected function character_drop_loot($client)
+    {
+        // 1 chance out of 2 of droping and item
+        if(rand(1,2) == 1)
+        {
+            $area = $client->get_group();
+            $state = $client->character->get_state(array("x", "y"));
+            $object = $this->create_object($this->possible_objects[rand(0, count($this->possible_objects) -1)], $area, $state["x"], $state["y"]);
+            $this->send_new_object($area, $object);
+        }
     }
 
     // returns a initial state for a new players
@@ -431,21 +459,21 @@ class RPG_SocketServer extends SocketServer
                 $this->sync_client($npc, true);
                 
                 // they may scream
-                if(rand(0,4) == 1)
+                if(rand(1,4) == 1)
                 {
                     $msgs = array("Come here ".$candy["username"]." !!", "I'll get ya ".$candy["username"]." !!", "Get himm !!!");
                     $this->send_to_others_in_group($npc, "player_action", array("id" => $npc->id, "action" => "talk", "msg" => $msgs[rand(0, count($msgs) -1)]));
                 }
 
                 // and they may jump
-                if(rand(0,2) == 1)
+                if(rand(1,2) == 1)
                 {
                     $this->send_to_others_in_group($npc, "player_action", array("id" => $npc->id, "action" => "jump"));
                 }
             }
 
             // ELSE there is 1 chance out of 3 of changing direction randomly
-            else if(rand(0,3) == 1 || $all)
+            else if(rand(1,3) == 1 || $all)
             {
                 // random direction OR forced direction if NPC go too far from map center
                 $props = $npc->character->get_state(array("x", "y", "skin"));
@@ -454,8 +482,8 @@ class RPG_SocketServer extends SocketServer
                 $npc->character->set_state(array("direction" => array($directionX, $directionY), "speed" => rand(15, 75)));
                 $this->sync_client($npc, true);
                 
-                // 1 chance out of five that it will talk
-                if(rand(0,5) == 1)
+                // 1 chance out of 6 that it will talk
+                if(rand(1,6) == 1)
                 {
                     if($props["skin"] == "npc1")
                     {
@@ -469,8 +497,8 @@ class RPG_SocketServer extends SocketServer
                     $this->send_to_others_in_group($npc, "player_action", array("id" => $npc->id, "action" => "talk", "msg" => $msgs[rand(0, count($msgs) -1)]));
                 }
 
-                // else... 1 chance out of five that it will jump (and talk)
-                else if(rand(0,5) == 1)
+                // else... 1 chance out of 8 that it will jump (and talk)
+                else if(rand(1,8) == 1)
                 {
                     $this->send_to_others_in_group($npc, "player_action", array("id" => $npc->id, "action" => "jump"));
                     $this->send_to_others_in_group($npc, "player_action", array("id" => $npc->id, "action" => "talk", "msg" => "Bounce !"));

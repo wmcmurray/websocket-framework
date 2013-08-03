@@ -130,6 +130,11 @@ function Game(address, port)
 				this.insert_player(data.content.id, data.content.props);
 			break;
 
+			// triggered when a new object get dropped in the game
+			case "new_object" :
+				this.insert_object(data.content);
+			break;
+
 			// triggered when an other player position change
 			case "player_update" :
 				if(this.players[data.content.id])

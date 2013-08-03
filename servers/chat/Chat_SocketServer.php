@@ -68,7 +68,7 @@ class Chat_SocketServer extends SocketServer
 		}
 
 		// keep this current message in memory
-		array_push($this->messages, $content);
+		$this->messages[] = $content;
 
 		// broadcast this current message to every clients in the current client group
 		$this->send_to_group($client->get_group(), "message", $content);

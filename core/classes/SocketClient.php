@@ -110,7 +110,7 @@ class SocketClient
 	
 	public function join_group($name = "")
 	{
-		array_push($this->groups, $name);
+		$this->groups[] = $name;
 
 		return $this;
 	}

@@ -66,7 +66,7 @@ class FilesManager
 					$files2 = $this->scandir($files[$k]);
 					foreach($files2 as $file2)
 					{
-						array_push($files, $file2);
+						$files[] = $file2;
 					}
 					
 					if($filesonly)

@@ -79,7 +79,7 @@ class Character extends Entity
     		if(!in_array($k, $not_synced) && (!isset($this->state_sync[$k]) || $this->state_sync[$k] != $this->state[$k]))
     		{
     			$this->state_sync[$k] = $this->state[$k];
-    			array_push($a, $k);
+    			$a[] = $k;
     		}
     	}
 
