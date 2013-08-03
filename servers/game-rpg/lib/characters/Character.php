@@ -69,14 +69,14 @@ class Character extends Entity
     	}
     }
 
-    public function get_unsync_state()
+    public function get_unsync_state($forced = array())
     {
     	$a = array();
     	$not_synced = array("keys", "last_update");
 
     	foreach($this->state as $k => $v)
     	{
-    		if(!in_array($k, $not_synced) && (!isset($this->state_sync[$k]) || $this->state_sync[$k] != $this->state[$k]))
+    		if(!in_array($k, $not_synced) && (!isset($this->state_sync[$k]) || $this->state_sync[$k] != $this->state[$k]) || in_array($k, $forced))
     		{
     			$this->state_sync[$k] = $this->state[$k];
     			$a[] = $k;

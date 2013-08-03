@@ -62,7 +62,11 @@ function Game(address, port)
 		{
 			// triggered when player first sync
 			case "initial_sync" :
-				this.hero.sync(data.content).change_skin(data.content.skin).place();
+				this.hero
+				.sync(data.content)
+				.change_skin(data.content.skin)
+				.place(data.content.x, data.content.y);
+
 				this.update_camera(0);
 
 				if(this.loop_interval)
@@ -305,8 +309,8 @@ function Game(address, port)
 		var mapH = jQuery(this.map).height();
 		var heroW = this.hero ? jQuery(this.hero.view).width() : 0;
 		var heroH = this.hero ? jQuery(this.hero.view).height() : 0;
-		var heroL = this.hero ? this.hero.props.x : 0;
-		var heroT = this.hero ? this.hero.props.y : 0;
+		var heroL = this.hero ? this.hero.estimatedX : 0;
+		var heroT = this.hero ? this.hero.estimatedY : 0;
 		var mapTopMax = -(mapH - sceneH);
 		var mapLeftMax = -(mapW - sceneW);
 		var left = 0;

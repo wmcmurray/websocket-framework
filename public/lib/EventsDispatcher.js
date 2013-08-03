@@ -4,7 +4,12 @@
 
 function EventsDispatcher()
 {
-	this.events_listeners = new Array();
+	this.init();
+}
+
+EventsDispatcher.prototype.init = function()
+{
+    this.events_listeners = new Array();
 }
 
 EventsDispatcher.prototype.on = function (evt, fnc)

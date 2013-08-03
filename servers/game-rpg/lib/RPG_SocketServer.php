@@ -67,7 +67,7 @@ class RPG_SocketServer extends SocketServer
                 $props = $client->character->get_state(array("health", "max_health"));
                 if($props["health"] < $props["max_health"])
                 {
-                    $client->character->set_state(array("health" => $props["health"] + ($props["max_health"] / 50)));
+                    $client->character->set_state(array("health" => $props["health"] + round($props["max_health"] / 50)));
                     $this->sync_client($client, true);
                 }
             }
@@ -82,9 +82,12 @@ class RPG_SocketServer extends SocketServer
             $this->npcs_candy = false;
         }
 
-        $this->update_client($client);
-        $this->save_player_state($client);
-        $this->send_to_others_in_group($client, "player_quit", $client->id);
+        if(isset($client->character))
+        {
+            $this->update_client($client);
+            $this->save_player_state($client);
+            $this->send_to_others_in_group($client, "player_quit", $client->id);
+        }
     }
 
 
@@ -194,16 +197,29 @@ class RPG_SocketServer extends SocketServer
 
             if($client->character->sight($other->character->get_pos(), $angle, $field_of_view, $sight_distance_max, $sight_distance_min))
             {
-                $this->send_to_group($client->get_group(), "player_action", array("id" => $other->id, "action" => "talk", "msg" => "AOUCH I'M HIT !"));
-                $this->send_to_group($client->get_group(), "player_action", array("id" => $other->id, "action" => "jump"));
+                $health = $other->character->get_state("health") - 10;
+                
+                if($health < 0)
+                {
+                    $health = 0;
+                }
 
-                $other->character->set_state(array("health" => $other->character->get_state("health") - 10));
+                $other->character->set_state(array("health" => $health));
                 $this->sync_client($other, true);
 
-                if($other->character->get_state("health") <= 0)
+                if($health <= 0)
                 {
                     $other->character->set_state(array("health" => $other->character->get_state("max_health")));
-                    $this->character_drop_loot($other);
+                    
+                    if($other->is_npc())
+                    {
+                        $this->character_drop_loot($other);
+                    }
+                    else
+                    {
+                        // TODO: drop inventory?...
+                    }
+                    
                     $this->disconnect($other);
                 }
             }
@@ -272,13 +288,16 @@ class RPG_SocketServer extends SocketServer
     // calculate current player state
     protected function update_client($client)
     {
-        $props = $client->character->get_state(array("last_update", "x", "y", "speed", "direction"));
-        $now = microtime(true);
-        $deltatime = $now - $props["last_update"];
-        $divider = $props["direction"][0] && $props["direction"][1] ? 0.75 : 1;
-        $client->character->set_state("x", round($props["x"] + (($props["speed"] * $deltatime) * ($props["direction"][0] * $divider))));
-        $client->character->set_state("y", round($props["y"] + (($props["speed"] * $deltatime) * ($props["direction"][1] * $divider))));
-        $client->character->set_state("last_update", $now);
+        if(isset($client->character))
+        {
+            $props = $client->character->get_state(array("last_update", "x", "y", "speed", "direction"));
+            $now = microtime(true);
+            $deltatime = $now - $props["last_update"];
+            $divider = $props["direction"][0] && $props["direction"][1] ? 0.75 : 1;
+            $client->character->set_state("x", round($props["x"] + (($props["speed"] * $deltatime) * ($props["direction"][0] * $divider))));
+            $client->character->set_state("y", round($props["y"] + (($props["speed"] * $deltatime) * ($props["direction"][1] * $divider))));
+            $client->character->set_state("last_update", $now);
+        }
     }
 
     // first syncronisation of a client
