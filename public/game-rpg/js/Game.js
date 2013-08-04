@@ -284,7 +284,7 @@ function Game(address, port)
 		}
 
 		this.players[id] = new Character(props.username, this.map, props);
-		this.players[id].sync(props).place().update_depth();
+		this.players[id].sync(props).place(props.x, props.y).update_depth();
 	}
 
 	// remove a player instance in the game

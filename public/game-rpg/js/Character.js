@@ -41,14 +41,10 @@ Character.prototype.init = function()
 	this.view.healthbar = document.createElement("div");
 	this.view.healthbar.className = "bar";
 
-	this.view.coord = document.createElement("div");
-	this.view.coord.className = "coord";
-
 	this.view.sprite.appendChild(this.view.username);
 	this.view.health.appendChild(this.view.healthbar);
 	this.view.sprite.appendChild(this.view.health);
 	this.view.appendChild(this.view.shadow);
-	this.view.appendChild(this.view.coord);
 	this.view.appendChild(this.view.sprite);
 
 	if(this.props.skin)
@@ -129,9 +125,6 @@ Character.prototype.apply_keyevent = function(type, key)
 
 Character.prototype.refresh = function()
 {
-	// display current coords
-	this.view.coord.innerHTML = "x:" + this.estimatedX + "<br>y:" + this.estimatedY;
-
 	// update estimated position
 	var divider = this.props.direction[0] && this.props.direction[1] ? 0.75 : 1;
 	this.estimatedX += (this.props.direction[0] * divider) * this.props.speed;
@@ -149,7 +142,12 @@ Character.prototype.place = function(x, y, animated)
 
 	if(animated)
 	{
-		jQuery(this.view).stop().animate(props, this.refresh_interval_time, "linear");
+		jQuery(this.view).stop().animate(props,
+		{
+			duration: this.refresh_interval_time,
+			easing: "linear",
+			progress: jQuery.proxy(this.update_depth, this)
+		});
 	}
 	else
 	{
@@ -157,7 +155,7 @@ Character.prototype.place = function(x, y, animated)
 		this.estimatedX = x;
 		this.estimatedY = y;
 	}
-	
+
 	return this;
 }
 
@@ -266,8 +264,6 @@ Character.prototype.animate = function()
 	{
 		this.update_sprite(this.anim_frame, 2);
 	}
-
-	this.update_depth();
 	
 	return this;
 }

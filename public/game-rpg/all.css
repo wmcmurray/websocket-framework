@@ -135,25 +135,6 @@ body
 	text-align: center;
 }
 
-#demo #scene .character .coord
-{
-	position: absolute;
-	top: 130%;
-	left: 0px;
-	z-index: 3;
-
-	display: none;
-
-	font-size: 10px;
-	line-height: 1em;
-	text-align: left;
-}
-
-#demo #scene .character:hover .coord
-{
-	display: block;
-}
-
 #demo #scene .character .shadow
 {
 	box-shadow: rgba(0,0,0,0.3) 0px 0px 5px;
