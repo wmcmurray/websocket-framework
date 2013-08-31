@@ -8,6 +8,7 @@ function Game(address, port)
 	{
 		this.scene = document.getElementById("scene");
 		this.map = document.getElementById("map");
+		this.inventory = document.getElementById("inventory");
 		this.players = {};
 		this.objects = Array();
 		this.keypressed = {};
@@ -84,11 +85,21 @@ function Game(address, port)
 				{
 					areasButtons.parent().find("a[data-area='" + data.content.area + "']").trigger("click");
 				}
+
+				if(data.content.inventory)
+				{
+					this.update_inventory(data.content.inventory);
+				}
 			break;
 
 			// triggered when server send our real state to syncronize the browser
 			case "sync" :
 				this.hero.sync(data.content);
+
+				if(data.content.inventory)
+				{
+					this.update_inventory(data.content.inventory);
+				}
 			break;
 
 			// when we receives a list of players
@@ -298,6 +309,19 @@ function Game(address, port)
 	this.insert_object = function(props)
 	{
 		this.objects.push(new Game_Object(props.name, this.map, props.pos.x, props.pos.y));
+	}
+
+	// update the player inventory in UI
+	this.update_inventory = function(objects)
+	{
+		console.log(objects);
+		this.inventory.innerHTML = "";
+
+		for(var i in objects)
+		{
+			new Game_Object(objects[i], this.inventory, 0, 0);
+			//this.inventory.innerHTML += objects[i] + ", ";
+		}
 	}
 
 	// move the whole scene to always see player, this simulate a camera effect

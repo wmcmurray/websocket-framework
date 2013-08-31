@@ -23,6 +23,12 @@ class RPG_SocketServer extends SocketServer
         $this->fm->make_dir("game-rpg/");
         $this->fm->make_dir("game-rpg/players/");
 
+        // create empty objects arrays for each areas
+        foreach ($this->areas as $area)
+        {
+            $this->objects[$area] = array();
+        }
+
         // create some NPCs at the begining
         // cats in grass world
         for($i = 1; $i <= 3; $i++)
@@ -145,10 +151,45 @@ class RPG_SocketServer extends SocketServer
     {
         if(in_array($data->key, $this->recognized_keys))
         {
-            if($data->key == "space" && $data->type == "keydown")
+            // USE/GRAB KEY
+            if($data->key == "e" && $data->type == "keydown")
+            {
+                $area = $client->character->get_state("area");
+                $nearest = false;
+                $nearestKey;
+                $nearestDistance;
+
+                foreach($this->objects[$area] as $k => $object)
+                {
+                    $distance = $client->character->get_distance($object->get_pos());
+                    $lootRadius = $client->character->loot_radius;
+
+                    if($distance <= $lootRadius && (!$nearest || $nearestDistance >= $distance))
+                    {
+                        $nearest = $object;
+                        $nearestKey = $k;
+                        $nearestDistance = $distance;
+                    }
+                }
+
+                if($nearest)
+                {
+                    if($client->character->grab($nearest))
+                    {
+                        $this->sync_client($client);
+                        unset($this->objects[$area][$nearestKey]);
+                        $this->send_objects_list($client);
+                    }
+                }
+            }
+
+            // JUMP KEY
+            else if($data->key == "space" && $data->type == "keydown")
             {
                 $this->send_to_others_in_group($client, "player_action", array("id" => $client->id, "action" => "jump"));
             }
+
+            // MOVEMENT KEYS & OTHERS
             else
             {
                 // calculate client position
@@ -328,19 +369,13 @@ class RPG_SocketServer extends SocketServer
     {
         $objects = array();
         $area = $client->character->get_state("area");
-        if(isset($this->objects[$area]))
-        {
-            foreach ($this->objects[$area] as $k => $v)
-            {
-                $objects[] = array("name" => $v->name, "pos" => $v->get_pos());
-            }
 
-            $this->send($client, "objects_list", $objects);
-        }
-        else
+        foreach ($this->objects[$area] as $k => $v)
         {
-            $this->send($client, "objects_list", array());
+            $objects[] = array("name" => $v->name, "pos" => $v->get_pos());
         }
+
+        $this->send($client, "objects_list", $objects);
     }
 
     // send a list of all players in this area to a client
@@ -389,11 +424,6 @@ class RPG_SocketServer extends SocketServer
 
     protected function create_object($name = "knife", $area = "grass", $x = 0, $y = 0)
     {
-        if(!isset($this->objects[$area]))
-        {
-            $this->objects[$area] = array();
-        }
-
         $object = new Game_Object($name, $x, $y);
         $this->objects[$area][] = $object;
         
@@ -433,7 +463,7 @@ class RPG_SocketServer extends SocketServer
             "exp"           => 0,
             "keys"          => $keystates,
             "direction"     => array(0,0),
-            //"inventory"     => array("knife"),
+            "inventory"     => array(),
             "last_update"   => microtime(true)
         );
     }

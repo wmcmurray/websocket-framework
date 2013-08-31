@@ -82,6 +82,27 @@ body
 	color: #fff;
 }
 
+#demo #scene #inventory
+{
+	border-radius: 0px 0px 0px 5px;
+	position: absolute;
+	z-index: 2;
+	top: 0px;
+	right: 0px;
+	width: 136px;
+	min-height: 34px;
+	padding: 5px;
+	border: 1px solid #333;
+	background: rgba(0,0,0,0.5);
+	color: #fff;
+}
+
+#demo #scene #inventory .object
+{
+	position: static;
+	display: inline-block;
+}
+
 #demo #scene #map
 {
 	position: absolute;

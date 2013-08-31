@@ -3,6 +3,9 @@ require_once(SERVER_ROOT . "lib/Entity.php");
 
 class Character extends Entity
 {
+	public $loot_radius = 34;
+    public $inventory_size = 12;
+
     protected $state;
     protected $state_sync;
 
@@ -84,6 +87,16 @@ class Character extends Entity
     	}
 
     	return $this->get_state($a);
+    }
+
+    public function grab($object = array())
+    {
+        if(count($this->state["inventory"]) < $this->inventory_size)
+        {
+            $this->state["inventory"][] = $object->name;
+            return true;
+        }
+        return false;
     }
 }
 ?>
