@@ -1,5 +1,5 @@
 <?php
-require_once("../core/index.php");
+require_once("../../core/index.php");
 
 class HelloWorld_SocketServer extends SocketServer
 {

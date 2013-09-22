@@ -7,4 +7,4 @@ REM change window background and color
 Color 0A
 
 REM start the server
-php ../core/wrapper.php -server:chat -verbose -debug -warn
+php ../../core/wrapper.php -server:chat -verbose -debug -warn

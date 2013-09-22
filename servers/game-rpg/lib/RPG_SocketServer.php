@@ -1,6 +1,6 @@
 <?php
-require_once("../core/index.php");
-require_once("../core/helpers/FilesManager.php");
+require_once("../../core/index.php");
+require_once("../../core/helpers/FilesManager.php");
 
 require_once(SERVER_ROOT . "lib/characters/Character.php");
 require_once(SERVER_ROOT . "lib/objects/Game_Object.php");

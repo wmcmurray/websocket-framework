@@ -1,5 +1,5 @@
 <?php
-require_once("../core/index.php");
+require_once("../../core/index.php");
 
 class Chat_SocketServer extends SocketServer
 {

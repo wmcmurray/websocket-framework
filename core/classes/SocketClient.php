@@ -132,7 +132,7 @@ class SocketClient
 	
 	public function get_group()
 	{
-		return count($this->groups) > 1 ? $this->groups : $this->groups[0];
+		return count($this->groups) > 1 ? $this->groups : (isset($this->groups[0]) ? $this->groups[0] : "");
 	}
 	
 	public function in_group($groups = "")
