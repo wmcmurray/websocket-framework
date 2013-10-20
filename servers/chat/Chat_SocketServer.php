@@ -1,7 +1,7 @@
 <?php
 require_once("../../core/index.php");
 
-class Chat_SocketServer extends SocketServer
+class Chat_SocketServer extends Basic_SocketServer
 {
 	// SERVER INIT
 	//===========================================================================

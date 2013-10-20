@@ -2,7 +2,7 @@
 ob_start();
 
 // get config file
-$CONFIG = @parse_ini_file("config.ini");
+$CONFIG = file_exists("config.ini") ? @parse_ini_file("config.ini") : false;
 if(!$CONFIG)
 {
 	$CONFIG = parse_ini_file("config.template.ini");

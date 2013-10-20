@@ -1,7 +1,7 @@
 <?php
 require_once("../../core/index.php");
 
-class HelloWorld_SocketServer extends SocketServer
+class HelloWorld_SocketServer extends Basic_SocketServer
 {
     // executed when server receive data
     protected function handle_helloworld($client, $data)

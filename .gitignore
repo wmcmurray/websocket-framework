@@ -8,4 +8,5 @@ public/sandbox
 servers/mmouse
 servers/sandbox
 executables/mmouse.bat
-executables/sandbox.bat
+executables/windows/sandbox.bat
+executables/linux/sandbox.sh
