@@ -23,7 +23,9 @@ Features
 
 Should you use it or not ?
 -------------------------
-I won't recommends you to use it for big projects or for production environnement since it's pretty young at this stage. You may want to chose other frameworks with more features. Also, I must admit that the server side language I've chosen (PHP) may not be the best in this context (no multithreading by default, blocking, etc..). You should maybe take a look at Node.js based servers. Despite all of this, I really love to use this framework and I'll be pushing it further until I reach some kind of positive or negative end.
+Well, this was a nice experiment with PHP websockets, but you definetly want to use NodeJS instead !
+
+**This project is also NOT MAINTAINED ANYMORE.**
 
 
 Documentation
@@ -44,7 +46,6 @@ Demos included
 	</tr>
 	<tr>
 		<td>
-			
 			<img src="https://raw.github.com/wmcmurray/websocket-framework/dev/screenshots/demo-game-rpg.jpg" width="694">
 			<ul>
 				<li>Players state are kept on the server, only keyboard events data are sent</li>
@@ -82,7 +83,7 @@ TODOs list
 - [x] Add a raw transport layer (raw_send()) for people who wants full control over optimisation
 - [x] Add possibility to create custom admin commands
 - [x] Add an helper to save and retrieve data in text files
-- [/] Create a 2D game demo <strong>(in progress...)</strong>
+- [ ] Finish the 2D game demo
 - [ ] Create a realtime website demo
 - [ ] Create an online radio demo
 - [ ] Add an admin command to buffer server errors and retrieve them via remote client
