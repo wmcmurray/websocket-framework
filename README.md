@@ -1,17 +1,21 @@
-Websocket Framework v0.0.4
-======================================
+# Websocket Framework v0.0.4
 
 <img src="https://raw.github.com/wmcmurray/websocket-framework/master/screenshots/server.gif" width="300" align="right" title="Server cmd prompt">
 This project provide a way to easily create PHP websocket servers and JavaScript clients.
 You won't have to deal with socket listening, handshaking, data unmasking and such, it's all done by the framework.
 
-**All you have to do is : create what you have in mind !**
-
 **Licence :** GNU General Public License, version 3.0 (GPLv3)
 
 
-Features
--------------------------
+## Should you use it or not ?
+
+**This project is NOT MAINTAINED ANYMORE.**
+
+Well, it was a nice experiment with PHP websockets, but you definetly want to use NodeJS instead !
+
+
+## Features
+
 * Supports **RFC 6455**
 * **Easy** to use API
 * **Only 10 lines of code** to make a working server
@@ -21,23 +25,16 @@ Features
 * **Connected clients limit** to prevent your servers from exploding
 
 
-Should you use it or not ?
--------------------------
-Well, this was a nice experiment with PHP websockets, but you definetly want to use NodeJS instead !
+## Documentation
 
-**This project is also NOT MAINTAINED ANYMORE.**
-
-
-Documentation
--------------------------
 * [How to use : general](https://github.com/wmcmurray/websocket-framework/wiki/How-to-use)
 * [How to use : remote admin](https://github.com/wmcmurray/websocket-framework/wiki/Remote-admin)
 * [API reference : server](https://github.com/wmcmurray/websocket-framework/wiki/API-reference-:-server)
 * [API reference : client](https://github.com/wmcmurray/websocket-framework/wiki/API-reference-:-client)
 
 
-Demos included
--------------------------
+## Demos included
+
 <table>
 	<tr>
 		<th>
@@ -78,8 +75,9 @@ Demos included
 	</tr>
 </table>
 
-TODOs list
--------------------------
+
+## TODOs list
+
 - [x] Add a raw transport layer (raw_send()) for people who wants full control over optimisation
 - [x] Add possibility to create custom admin commands
 - [x] Add an helper to save and retrieve data in text files
